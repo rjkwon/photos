@@ -1,0 +1,69 @@
+---
+import fs from 'fs';
+import path from 'path';
+
+export async function getStaticPaths() {
+  const galleriesDir = path.resolve('public/photos');
+  
+  const galleryFolders = fs.readdirSync(galleriesDir).filter((f) => {
+    const fullPath = path.join(galleriesDir, f);
+    return fs.statSync(fullPath).isDirectory();
+  });
+  
+  console.log("📂 Galleries found:", galleryFolders);
+  
+  return galleryFolders.map((slug) => {
+    const galleryPath = path.join(galleriesDir, slug);
+    
+    console.log('🔍 Checking gallery path:', galleryPath);
+    
+    const allFiles = fs.readdirSync(galleryPath);
+
+  const uniqueImages = new Set(
+    allFiles
+      .filter((file) => /\.(jpe?g|png|webp|avif)$/i.test(file))
+      .map((file) => file.replace(/(-\d+)\.(jpe?g|png|webp|avif)$/i, ''))
+    );
+
+    console.log(`📁 Found ${uniqueImages.size} unique images in ${slug} (${allFiles.length} total files)`);
+    
+    const imageFiles = allFiles.filter((file) =>
+      /\.(jpe?g|png|webp|avif)$/i.test(file)
+    );
+    
+    console.log(`📸 Filtered for image files only (${imageFiles.length})`);
+    
+    const imageUrls = imageFiles.map((file) => `/photos/${slug}/${file}`);
+    
+    console.log(`✅ Found ${imageUrls.length} image files in ${slug}`);
+    
+    return {
+      params: { slug },
+      props: { slug, images: imageUrls }
+    };
+  });
+}
+
+const { slug, images } = Astro.props;
+---
+
+<html>
+  <body style="font-family: sans-serif; max-width: 960px; margin: 2rem auto;">
+    <h1>{slug ? slug.replace(/-/g, ' ') : 'Gallery not found'}</h1>
+    {Array.isArray(images) && images.length > 0 ? (
+      <div
+        style="
+          display: grid;
+          grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+          gap: 1rem;
+        "
+      >
+        {images.map((src) => (
+          <img src={src} alt={src.split('/').pop()} style="width: 100%; height: auto;" />
+        ))}
+      </div>
+    ) : (
+      <p>No images found in <code>/public/photos/{slug}</code>.</p>
+    )}
+  </body>
+</html>
