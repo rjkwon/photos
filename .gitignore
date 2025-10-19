@@ -1,11 +1,12 @@
 # build output
 dist/
-
-# generated types
 .astro/
 
 # dependencies
 node_modules/
+
+# generated images
+public/photos/
 
 # logs
 npm-debug.log*
@@ -15,7 +16,7 @@ pnpm-debug.log*
 
 # environment variables
 .env
-.env.production
+.env.*
 
 # macOS-specific files
 .DS_Store
