@@ -4,12 +4,12 @@
   "version": "0.0.1",
   "scripts": {
     "dev": "astro dev",
-    "build": "astro build",
+    "build": "node scripts/process-images.mjs && astro build",
     "preview": "astro preview",
     "astro": "astro",
     "process-images": "node scripts/process-images.mjs"
-
   },
+
   "dependencies": {
     "@astrojs/mdx": "^4.3.7",
     "@astrojs/react": "^4.2.3",

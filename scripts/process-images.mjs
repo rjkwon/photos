@@ -10,8 +10,7 @@ const formats = [
   { ext: "jpg", options: { quality: 90 } },
 ];
 const maxWidths = [480, 1000, 1600];
-
-const CONCURRENCY = 4; // Number of images to process concurrently
+const CONCURRENCY = 4;
 
 function ensureDir(dir) {
   if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
@@ -26,10 +25,8 @@ function needsRegeneration(srcPath, destFolder, filename) {
     for (const { ext } of formats) {
       const outputPath = path.join(destFolder, `${name}-${width}.${ext}`);
       
-      // If file doesn't exist, needs regeneration
       if (!fs.existsSync(outputPath)) return true;
       
-      // If source is newer than output, needs regeneration
       const outStats = fs.statSync(outputPath);
       if (srcStats.mtimeMs > outStats.mtimeMs) return true;
     }
@@ -38,13 +35,51 @@ function needsRegeneration(srcPath, destFolder, filename) {
   return false;
 }
 
+// Clean up orphaned output files (source no longer exists)
+function cleanOrphanedFiles(inputFolder, outputFolder) {
+  if (!fs.existsSync(outputFolder)) return;
+  
+  // Get all source image base names
+  const sourceFiles = fs
+    .readdirSync(inputFolder)
+    .filter((f) => /\.(jpg|jpeg|png|heic|dng)$/i.test(f))
+    .map((f) => path.parse(f).name);
+  
+  const sourceNamesSet = new Set(sourceFiles);
+  
+  // Get all output files
+  const outputFiles = fs.readdirSync(outputFolder);
+  
+  let deletedCount = 0;
+  
+  outputFiles.forEach((file) => {
+    // Extract base name from output file (e.g., "20231217_01" from "20231217_01-1000.jpg")
+    const match = file.match(/^(.+?)-\d+\.(jpg|webp|avif)$/);
+    if (match) {
+      const baseName = match[1];
+      
+      // If source file doesn't exist, delete the output file
+      if (!sourceNamesSet.has(baseName)) {
+        const outputPath = path.join(outputFolder, file);
+        fs.unlinkSync(outputPath);
+        console.log("🗑️  Deleted:", outputPath);
+        deletedCount++;
+      }
+    }
+  });
+  
+  if (deletedCount > 0) {
+    const uniqueImages = Math.ceil(deletedCount / (maxWidths.length * formats.length));
+    console.log(`  ✨ Cleaned up ${deletedCount} orphaned files (${uniqueImages} images)`);
+  }
+}
+
 async function processImage(srcPath, destFolder, filename) {
   const name = path.parse(filename).name;
   
   try {
     const input = sharp(srcPath).rotate();
     
-    // Process all variants in parallel
     const tasks = [];
     for (const width of maxWidths) {
       for (const { ext, options } of formats) {
@@ -70,6 +105,9 @@ async function processImage(srcPath, destFolder, filename) {
 
 async function processFolder(folderPath, outputFolder) {
   ensureDir(outputFolder);
+  
+  // First, clean up orphaned files
+  cleanOrphanedFiles(folderPath, outputFolder);
   
   const files = fs
     .readdirSync(folderPath)
@@ -100,7 +138,35 @@ async function processFolder(folderPath, outputFolder) {
   }
 }
 
+// Clean up orphaned gallery folders
+function cleanOrphanedGalleries() {
+  if (!fs.existsSync(outputRoot)) return;
+  
+  // Get all source gallery folders
+  const sourceGalleries = fs
+    .readdirSync(inputRoot)
+    .filter((f) => fs.statSync(path.join(inputRoot, f)).isDirectory());
+  
+  const sourceGalleriesSet = new Set(sourceGalleries);
+  
+  // Get all output gallery folders
+  const outputGalleries = fs
+    .readdirSync(outputRoot)
+    .filter((f) => fs.statSync(path.join(outputRoot, f)).isDirectory());
+  
+  outputGalleries.forEach((gallery) => {
+    if (!sourceGalleriesSet.has(gallery)) {
+      const galleryPath = path.join(outputRoot, gallery);
+      fs.rmSync(galleryPath, { recursive: true, force: true });
+      console.log(`🗑️  Deleted orphaned gallery: ${gallery}`);
+    }
+  });
+}
+
 async function main() {
+  console.log("🔍 Checking for orphaned galleries...\n");
+  cleanOrphanedGalleries();
+  
   const galleries = fs
     .readdirSync(inputRoot)
     .filter((f) => fs.statSync(path.join(inputRoot, f)).isDirectory());

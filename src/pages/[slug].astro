@@ -3,7 +3,7 @@ import fs from 'fs';
 import path from 'path';
 
 export async function getStaticPaths() {
-  const galleriesDir = path.resolve('public/photos');
+  const galleriesDir = path.resolve('src/images');
   
   const galleryFolders = fs.readdirSync(galleriesDir).filter((f) => {
     const fullPath = path.join(galleriesDir, f);
@@ -14,56 +14,370 @@ export async function getStaticPaths() {
   
   return galleryFolders.map((slug) => {
     const galleryPath = path.join(galleriesDir, slug);
+    const publicGalleryPath = path.join('public/photos', slug);
     
-    console.log('🔍 Checking gallery path:', galleryPath);
+    // Read metadata
+    const metaPath = path.join(galleryPath, 'meta.json');
+    let metadata = { 
+      title: slug.replace(/-/g, ' '), 
+      blurb: '',
+      dateRange: '',
+      location: '',
+      groups: null 
+    };
     
-    const allFiles = fs.readdirSync(galleryPath);
-
-  const uniqueImages = new Set(
-    allFiles
-      .filter((file) => /\.(jpe?g|png|webp|avif)$/i.test(file))
-      .map((file) => file.replace(/(-\d+)\.(jpe?g|png|webp|avif)$/i, ''))
-    );
-
-    console.log(`📁 Found ${uniqueImages.size} unique images in ${slug} (${allFiles.length} total files)`);
+    if (fs.existsSync(metaPath)) {
+      const metaContent = fs.readFileSync(metaPath, 'utf-8');
+      metadata = { ...metadata, ...JSON.parse(metaContent) };
+    }
     
-    const imageFiles = allFiles.filter((file) =>
-      /\.(jpe?g|png|webp|avif)$/i.test(file)
-    );
+    // Get unique images from public/photos (the processed versions)
+    if (!fs.existsSync(publicGalleryPath)) {
+      console.warn(`⚠️ No processed images found for ${slug}`);
+      return {
+        params: { slug },
+        props: { slug, metadata, imageData: {} }
+      };
+    }
     
-    console.log(`📸 Filtered for image files only (${imageFiles.length})`);
+    const allFiles = fs.readdirSync(publicGalleryPath);
     
-    const imageUrls = imageFiles.map((file) => `/photos/${slug}/${file}`);
+    // Group files by base name (e.g., "20231217_01")
+    const imageGroups = {};
+    allFiles.forEach(file => {
+      const match = file.match(/^(.+?)-\d+\.(jpg|webp|avif)$/);
+      if (match) {
+        const baseName = match[1];
+        if (!imageGroups[baseName]) {
+          imageGroups[baseName] = [];
+        }
+        imageGroups[baseName].push(file);
+      }
+    });
     
-    console.log(`✅ Found ${imageUrls.length} image files in ${slug}`);
+    // Create image data lookup
+    const imageData = {};
+    Object.entries(imageGroups).forEach(([baseName, files]) => {
+      const variants = {
+        avif: {},
+        webp: {},
+        jpg: {}
+      };
+      
+      files.forEach(file => {
+        const sizeMatch = file.match(/-(\d+)\.(jpg|webp|avif)$/);
+        if (sizeMatch) {
+          const size = sizeMatch[1];
+          const format = sizeMatch[2];
+          variants[format][size] = `/photos/${slug}/${file}`;
+        }
+      });
+      
+      imageData[baseName] = {
+        baseName,
+        variants,
+        fallback: variants.jpg['1000'] || variants.jpg['480'] || Object.values(variants.jpg)[0]
+      };
+    });
+    
+    console.log(`✅ Found ${Object.keys(imageData).length} unique images in ${slug}`);
     
     return {
       params: { slug },
-      props: { slug, images: imageUrls }
+      props: { slug, metadata, imageData }
     };
   });
 }
 
-const { slug, images } = Astro.props;
+const { slug, metadata, imageData } = Astro.props;
+
+// If no custom groups defined, create smart default layout
+let layoutGroups = metadata.groups;
+if (!layoutGroups) {
+  const imageNames = Object.keys(imageData).sort();
+  
+  // Single group with all images - CSS Grid will handle the layout
+  layoutGroups = [{
+    type: 'auto',
+    images: imageNames
+  }];
+}
 ---
 
-<html>
-  <body style="font-family: sans-serif; max-width: 960px; margin: 2rem auto;">
-    <h1>{slug ? slug.replace(/-/g, ' ') : 'Gallery not found'}</h1>
-    {Array.isArray(images) && images.length > 0 ? (
-      <div
-        style="
-          display: grid;
-          grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-          gap: 1rem;
-        "
-      >
-        {images.map((src) => (
-          <img src={src} alt={src.split('/').pop()} style="width: 100%; height: auto;" />
-        ))}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{metadata.title} &bull; Kwon.photos</title>
+  <style>
+    @font-face {
+      font-family: 'AUTHENTIC Sans';
+      src: url('/fonts/authentic-sans-90.woff2') format('woff2');
+      font-weight: 90;
+      font-style: normal;
+      font-display: swap;
+    }
+    
+    @font-face {
+      font-family: 'AUTHENTIC Sans';
+      src: url('/fonts/authentic-sans-150.woff2') format('woff2');
+      font-weight: 150;
+      font-style: normal;
+      font-display: swap;
+    }
+    
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: 'AUTHENTIC Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      background: #e8e8e8;
+      padding: 0;
+      margin: 0;
+      font-weight: 90;
+    }
+    
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 3rem 2rem;
+    }
+    
+    .site-name {
+      font-size: 0.875rem;
+      margin-bottom: 4rem;
+      color: #333;
+    }
+    
+    header, footer {
+      margin: 10rem 0;
+    }
+    
+    h1 {
+      font-size: 3rem;
+      margin-bottom: 2.5rem;
+      font-weight: 90;
+      color: #1a1a1a;
+      letter-spacing: -0.02em;
+    }
+    
+    .meta-info {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2rem;
+      margin-bottom: 2rem;
+    }
+    
+    .meta-left {
+      font-size: 0.9375rem;
+      color: #333;
+      line-height: 1.6;
+    }
+    
+    .meta-right {
+      font-size: 1rem;
+      color: #333;
+      line-height: 1.7;
+    }
+    
+    @media (max-width: 768px) {
+      .meta-info {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+      }
+      
+      h1 {
+        font-size: 2rem;
+      }
+    }
+    
+    .gallery {
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+    
+    /* Group containers */
+    .group {
+      display: grid;
+      gap: 1.5rem;
+    }
+    
+    /* Layout types */
+    .group.auto {
+      grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+      grid-auto-flow: dense;
+    }
+    
+    .group.portrait-tall {
+      grid-template-columns: 1fr;
+      max-width: 600px;
+    }
+    
+    .group.landscape-stack {
+      grid-template-columns: repeat(3, 1fr);
+    }
+    
+    .group.side-by-side {
+      grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .group.grid-2x2 {
+      grid-template-columns: repeat(2, 1fr);
+      max-width: 1000px;
+    }
+    
+    .group.grid-3x3 {
+      grid-template-columns: repeat(3, 1fr);
+    }
+    
+    .group.hero {
+      grid-template-columns: 1fr;
+    }
+    
+    .group.featured {
+      grid-template-columns: 2fr 1fr;
+    }
+    
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+      .group.auto,
+      .group.side-by-side,
+      .group.grid-2x2,
+      .group.featured {
+        grid-template-columns: 1fr;
+      }
+      
+      .group.landscape-stack {
+        grid-template-columns: 1fr;
+      }
+      
+      .group.grid-3x3 {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+    
+    .gallery-item {
+      position: relative;
+      overflow: hidden;
+      border-radius: 12px;
+      background: #f5f5f5;
+      aspect-ratio: auto;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    }
+    
+    .gallery-item img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      transition: transform 0.3s ease;
+    }
+    
+    .gallery-item:hover img {
+      transform: scale(1.02);
+    }
+    
+    .no-images {
+      padding: 3rem;
+      text-align: center;
+      color: #999;
+      font-size: 1.125rem;
+      background: white;
+      border-radius: 12px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="site-name">kwon.photos</div>
+    
+    <header>
+      <h1>{metadata.title}</h1>
+      
+      <div class="meta-info">
+        <div class="meta-left">
+          {metadata.dateRange && <div>{metadata.dateRange}</div>}
+          {metadata.location && <div>{metadata.location}</div>}
+        </div>
+        
+        <div class="meta-right">
+          {metadata.blurb && <p>{metadata.blurb}</p>}
+        </div>
       </div>
-    ) : (
-      <p>No images found in <code>/public/photos/{slug}</code>.</p>
-    )}
-  </body>
+    </header>
+  
+  {Object.keys(imageData).length > 0 ? (
+    <div class="gallery">
+      {layoutGroups.map((group) => (
+        <div class={`group ${group.type}`}>
+          {group.images.map((imageName) => {
+            const image = imageData[imageName];
+            if (!image) {
+              console.warn(`Image not found: ${imageName}`);
+              return null;
+            }
+            return (
+              <div class="gallery-item">
+                <picture>
+                  {/* AVIF - best compression */}
+                  {image.variants.avif && Object.keys(image.variants.avif).length > 0 && (
+                    <source
+                      type="image/avif"
+                      srcset={Object.entries(image.variants.avif)
+                        .map(([size, url]) => `${url} ${size}w`)
+                        .join(', ')}
+                      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                    />
+                  )}
+                  
+                  {/* WebP - good compression */}
+                  {image.variants.webp && Object.keys(image.variants.webp).length > 0 && (
+                    <source
+                      type="image/webp"
+                      srcset={Object.entries(image.variants.webp)
+                        .map(([size, url]) => `${url} ${size}w`)
+                        .join(', ')}
+                      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                    />
+                  )}
+                  
+                  {/* JPG - fallback */}
+                  {image.variants.jpg && Object.keys(image.variants.jpg).length > 0 && (
+                    <source
+                      type="image/jpeg"
+                      srcset={Object.entries(image.variants.jpg)
+                        .map(([size, url]) => `${url} ${size}w`)
+                        .join(', ')}
+                      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                    />
+                  )}
+                  
+                  <img
+                    src={image.fallback}
+                    alt={image.baseName}
+                    loading="lazy"
+                  />
+                </picture>
+              </div>
+            );
+          })}
+        </div>
+      ))}
+    </div>
+  ) : (
+    <div class="no-images">
+      <p>No images found in this gallery.</p>
+      <p>Run <code>npm run process-images</code> to generate images.</p>
+    </div>
+  )}
+
+  <footer>
+    <p>A Kwon.nyc production</p>
+  </footer>
+</body>
 </html>

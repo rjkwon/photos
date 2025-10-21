@@ -5,8 +5,9 @@ dist/
 # dependencies
 node_modules/
 
-# generated images
+# exclude generated images, but track meta file
 public/photos/
+!/public/photos/**/meta.json
 
 # logs
 npm-debug.log*
