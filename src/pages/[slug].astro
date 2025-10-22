@@ -5,6 +5,12 @@ import path from 'path';
 export async function getStaticPaths() {
   const galleriesDir = path.resolve('src/images');
   
+  // Ensure galleries directory exists
+  if (!fs.existsSync(galleriesDir)) {
+    console.warn('⚠️ src/images directory not found');
+    return [];
+  }
+  
   const galleryFolders = fs.readdirSync(galleriesDir).filter((f) => {
     const fullPath = path.join(galleriesDir, f);
     return fs.statSync(fullPath).isDirectory();
@@ -31,16 +37,40 @@ export async function getStaticPaths() {
       metadata = { ...metadata, ...JSON.parse(metaContent) };
     }
     
-    // Get unique images from public/photos (the processed versions)
+    // Get source images from src/images to determine what should exist
+    const sourceFiles = fs.existsSync(galleryPath) 
+      ? fs.readdirSync(galleryPath).filter((f) => /\.(jpg|jpeg|png|heic|dng)$/i.test(f))
+      : [];
+    
+    // If no processed images yet, create placeholder imageData
     if (!fs.existsSync(publicGalleryPath)) {
-      console.warn(`⚠️ No processed images found for ${slug}`);
+      console.warn(`⚠️ No processed images found for ${slug} - they will be generated during build`);
+      const imageData = {};
+      sourceFiles.forEach(file => {
+        const baseName = path.parse(file).name;
+        // Create placeholder - images will be processed during build
+        imageData[baseName] = {
+          baseName,
+          variants: { avif: {}, webp: {}, jpg: {} },
+          fallback: ''
+        };
+      });
+      return {
+        params: { slug },
+        props: { slug, metadata, imageData }
+      };
+    }
+    
+    let allFiles = [];
+    try {
+      allFiles = fs.readdirSync(publicGalleryPath);
+    } catch (error) {
+      console.warn(`⚠️ Could not read ${publicGalleryPath}:`, error.message);
       return {
         params: { slug },
         props: { slug, metadata, imageData: {} }
       };
     }
-    
-    const allFiles = fs.readdirSync(publicGalleryPath);
     
     // Group files by base name (e.g., "20231217_01")
     const imageGroups = {};
@@ -134,7 +164,7 @@ if (!layoutGroups) {
     }
     
     body {
-      font-family: 'AUTHENTIC Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      font-family: 'AUTHENTIC Sans', -apple-system, BlinkMacSystemFont, sans-serif;
       background: #e8e8e8;
       padding: 0;
       margin: 0;
@@ -149,12 +179,17 @@ if (!layoutGroups) {
     
     .site-name {
       font-size: 0.875rem;
-      margin-bottom: 4rem;
+      margin-bottom: 0.5rem;
       color: #333;
     }
     
-    header, footer {
+    header {
       margin: 10rem 0;
+    }
+
+    footer {
+      margin: 10rem 0;
+      font-size: 0.8rem;
     }
     
     h1 {
@@ -162,7 +197,7 @@ if (!layoutGroups) {
       margin-bottom: 2.5rem;
       font-weight: 90;
       color: #1a1a1a;
-      letter-spacing: -0.02em;
+      /*letter-spacing: -0.02em;*/
     }
     
     .meta-info {
@@ -268,6 +303,7 @@ if (!layoutGroups) {
       background: #f5f5f5;
       aspect-ratio: auto;
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+      cursor: pointer;
     }
     
     .gallery-item img {
@@ -312,17 +348,25 @@ if (!layoutGroups) {
     </header>
   
   {Object.keys(imageData).length > 0 ? (
-    <div class="gallery">
-      {layoutGroups.map((group) => (
+    <div class="gallery" id="gallery">
+      {layoutGroups.map((group, groupIndex) => (
         <div class={`group ${group.type}`}>
-          {group.images.map((imageName) => {
+          {group.images.map((imageName, imageIndex) => {
             const image = imageData[imageName];
             if (!image) {
               console.warn(`Image not found: ${imageName}`);
               return null;
             }
+            
+            // Use largest size for lightbox
+            const fullSizeUrl = image.variants.jpg['1600'] || image.variants.webp['1600'] || image.fallback;
+            
             return (
-              <div class="gallery-item">
+              <a 
+                href={`/${slug}/${imageName}`} 
+                class="gallery-item"
+                rel="noopener noreferrer"
+              >
                 <picture>
                   {/* AVIF - best compression */}
                   {image.variants.avif && Object.keys(image.variants.avif).length > 0 && (
@@ -363,7 +407,7 @@ if (!layoutGroups) {
                     loading="lazy"
                   />
                 </picture>
-              </div>
+              </a>
             );
           })}
         </div>
@@ -377,7 +421,7 @@ if (!layoutGroups) {
   )}
 
   <footer>
-    <p>A Kwon.nyc production</p>
+    <p>Made by Kwon in Brooklyn</p>
   </footer>
 </body>
 </html>

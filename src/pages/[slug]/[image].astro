@@ -1,0 +1,330 @@
+---
+import fs from 'fs';
+import path from 'path';
+
+export async function getStaticPaths() {
+  const galleriesDir = path.resolve('src/images');
+  
+  if (!fs.existsSync(galleriesDir)) {
+    return [];
+  }
+  
+  const galleryFolders = fs.readdirSync(galleriesDir).filter((f) => {
+    const fullPath = path.join(galleriesDir, f);
+    return fs.statSync(fullPath).isDirectory();
+  });
+  
+  const paths = [];
+  
+  for (const slug of galleryFolders) {
+    const galleryPath = path.join(galleriesDir, slug);
+    const publicGalleryPath = path.join('public/photos', slug);
+    
+    // Read metadata
+    const metaPath = path.join(galleryPath, 'meta.json');
+    let metadata = { title: slug.replace(/-/g, ' ') };
+    if (fs.existsSync(metaPath)) {
+      const metaContent = fs.readFileSync(metaPath, 'utf-8');
+      metadata = { ...metadata, ...JSON.parse(metaContent) };
+    }
+    
+    if (!fs.existsSync(publicGalleryPath)) continue;
+    
+    const allFiles = fs.readdirSync(publicGalleryPath);
+    const imageGroups = {};
+    
+    allFiles.forEach(file => {
+      const match = file.match(/^(.+?)-\d+\.(jpg|webp|avif)$/);
+      if (match) {
+        const baseName = match[1];
+        if (!imageGroups[baseName]) {
+          imageGroups[baseName] = [];
+        }
+        imageGroups[baseName].push(file);
+      }
+    });
+    
+    const imageNames = Object.keys(imageGroups).sort();
+    
+    imageNames.forEach((imageName, index) => {
+      const files = imageGroups[imageName];
+      const variants = { avif: {}, webp: {}, jpg: {} };
+      
+      files.forEach(file => {
+        const sizeMatch = file.match(/-(\d+)\.(jpg|webp|avif)$/);
+        if (sizeMatch) {
+          const size = sizeMatch[1];
+          const format = sizeMatch[2];
+          variants[format][size] = `/photos/${slug}/${file}`;
+        }
+      });
+      
+      // Find previous and next images for navigation
+      const prevImage = index > 0 ? imageNames[index - 1] : null;
+      const nextImage = index < imageNames.length - 1 ? imageNames[index + 1] : null;
+      
+      paths.push({
+        params: { slug, image: imageName },
+        props: {
+          slug,
+          galleryTitle: metadata.title,
+          imageName,
+          variants,
+          prevImage,
+          nextImage,
+          imageNumber: index + 1,
+          totalImages: imageNames.length,
+          fallback: variants.jpg['1400'] || variants.webp['1400'] || Object.values(variants.jpg)[0]
+        }
+      });
+    });
+  }
+  
+  return paths;
+}
+
+const { slug, galleryTitle, imageName, variants, prevImage, nextImage, imageNumber, totalImages, fallback } = Astro.props;
+---
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{imageName} &bull; {galleryTitle} &bull; Kwon.photos</title>
+  
+  <style>
+    @font-face {
+      font-family: 'AUTHENTIC Sans';
+      src: url('/fonts/authentic-sans-90.woff2') format('woff2');
+      font-weight: 90;
+      font-style: normal;
+      font-display: swap;
+    }
+    
+    @font-face {
+      font-family: 'AUTHENTIC Sans';
+      src: url('/fonts/authentic-sans-150.woff2') format('woff2');
+      font-weight: 150;
+      font-style: normal;
+      font-display: swap;
+    }
+    
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: 'AUTHENTIC Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #1a1a1a;
+      color: #fff;
+      font-weight: 90;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+    
+    a:hover {
+      opacity: 0.7;
+    }
+    
+    .header {
+      padding: 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .back-link {
+      font-size: 0.875rem;
+    }
+    
+    .image-counter {
+      font-size: 0.875rem;
+      color: #999;
+    }
+    
+    .image-container {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+      position: relative;
+    }
+    
+    .image-wrapper {
+      max-width: 100%;
+      max-height: 80vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .image-wrapper img {
+      max-width: 100%;
+      max-height: 80vh;
+      width: auto;
+      height: auto;
+      object-fit: contain;
+      border-radius: 4px;
+    }
+    
+    .navigation {
+      position: fixed;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      padding: 0 2rem;
+      pointer-events: none;
+      z-index: 10;
+    }
+    
+    .nav-button {
+      pointer-events: auto;
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      color: white;
+      padding: 1rem 1.5rem;
+      border-radius: 8px;
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 0.875rem;
+      transition: all 0.2s;
+      backdrop-filter: blur(10px);
+    }
+    
+    .nav-button:hover {
+      background: rgba(255, 255, 255, 0.2);
+    }
+    
+    .nav-button:disabled {
+      opacity: 0.3;
+      cursor: not-allowed;
+    }
+    
+    .footer {
+      padding: 2rem;
+      text-align: center;
+      font-size: 0.875rem;
+      color: #999;
+    }
+    
+    /* Keyboard hint */
+    .keyboard-hint {
+      position: fixed;
+      bottom: 2rem;
+      right: 2rem;
+      font-size: 0.75rem;
+      color: #666;
+    }
+    
+    @media (max-width: 768px) {
+      .navigation {
+        padding: 0 1rem;
+      }
+      
+      .nav-button {
+        padding: 0.75rem 1rem;
+        font-size: 0.75rem;
+      }
+      
+      .keyboard-hint {
+        display: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <a href={`/${slug}`} class="back-link">← Back to {galleryTitle}</a>
+    <div class="image-counter">{imageNumber} / {totalImages}</div>
+  </div>
+  
+  <div class="image-container">
+    <div class="image-wrapper">
+      <picture>
+        {variants.avif && Object.keys(variants.avif).length > 0 && (
+          <source
+            type="image/avif"
+            srcset={Object.entries(variants.avif)
+              .map(([size, url]) => `${url} ${size}w`)
+              .join(', ')}
+            sizes="100vw"
+          />
+        )}
+        
+        {variants.webp && Object.keys(variants.webp).length > 0 && (
+          <source
+            type="image/webp"
+            srcset={Object.entries(variants.webp)
+              .map(([size, url]) => `${url} ${size}w`)
+              .join(', ')}
+            sizes="100vw"
+          />
+        )}
+        
+        {variants.jpg && Object.keys(variants.jpg).length > 0 && (
+          <source
+            type="image/jpeg"
+            srcset={Object.entries(variants.jpg)
+              .map(([size, url]) => `${url} ${size}w`)
+              .join(', ')}
+            sizes="100vw"
+          />
+        )}
+        
+        <img
+          src={fallback}
+          alt={imageName}
+        />
+      </picture>
+    </div>
+  </div>
+  
+  <div class="navigation">
+    {prevImage ? (
+      <a href={`/${slug}/${prevImage}`} class="nav-button">← Previous</a>
+    ) : (
+      <button class="nav-button" disabled>← Previous</button>
+    )}
+    
+    {nextImage ? (
+      <a href={`/${slug}/${nextImage}`} class="nav-button">Next →</a>
+    ) : (
+      <button class="nav-button" disabled>Next →</button>
+    )}
+  </div>
+  
+  <div class="keyboard-hint">Use ← → arrow keys to navigate</div>
+  
+  <div class="footer">
+    <a href="/">kwon.photos</a>
+  </div>
+  
+  <script>
+    // Keyboard navigation
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowLeft') {
+        const prevLink = document.querySelector('a[href*="Previous"]')?.closest('a');
+        if (prevLink) window.location.href = prevLink.href;
+      } else if (e.key === 'ArrowRight') {
+        const nextLink = document.querySelector('a[href*="Next"]')?.closest('a');
+        if (nextLink) window.location.href = nextLink.href;
+      } else if (e.key === 'Escape') {
+        const backLink = document.querySelector('.back-link');
+        if (backLink) window.location.href = backLink.href;
+      }
+    });
+  </script>
+</body>
+</html>
