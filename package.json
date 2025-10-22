@@ -4,7 +4,7 @@
   "version": "0.0.1",
   "scripts": {
     "dev": "astro dev",
-    "build": "node scripts/process-images.mjs && astro build",
+    "build": "astro build",
     "preview": "astro preview",
     "astro": "astro",
     "process-images": "node scripts/process-images.mjs"

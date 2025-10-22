@@ -6,10 +6,9 @@ const inputRoot = "src/images";
 const outputRoot = "public/photos";
 const formats = [
   { ext: "webp", options: { quality: 90 } },
-  { ext: "avif", options: { quality: 90 } },
   { ext: "jpg", options: { quality: 90 } },
 ];
-const maxWidths = [480, 1000, 1600];
+const maxWidths = [600, 1600];
 const CONCURRENCY = 4;
 
 function ensureDir(dir) {
