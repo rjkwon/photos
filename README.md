@@ -32,6 +32,7 @@ root/
 
 ## Setup
 Need to have Node.js 18+, and npm (or yarn)
+
 ### Installation
 
 1. Clone repository
