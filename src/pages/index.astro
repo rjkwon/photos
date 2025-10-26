@@ -1,40 +1,192 @@
 ---
 import '../styles/global.css';
+import fs from 'fs';
+import path from 'path';
+
+const galleriesDir = path.resolve('src/images');
+let galleries = [];
+
+if (fs.existsSync(galleriesDir)) {
+  const folders = fs.readdirSync(galleriesDir).filter((f) => {
+    const fullPath = path.join(galleriesDir, f);
+    return fs.statSync(fullPath).isDirectory();
+  });
+
+  galleries = folders.map((slug) => {
+    const metaPath = path.join(galleriesDir, slug, 'meta.json');
+    let metadata = { title: slug.replace(/-/g, ' ') };
+    if (fs.existsSync(metaPath)) {
+      const meta = JSON.parse(fs.readFileSync(metaPath, 'utf-8'));
+      metadata = { ...metadata, ...meta };
+    }
+
+	const publicDir = path.join('public/photos', slug);
+	let coverImage = null;
+	if (fs.existsSync(publicDir)) {
+	  if (metadata.cover) {
+	    const base = metadata.cover;
+	    // Look for files with size suffix like "20231225_11-1600.webp"
+	    const possibleFormats = ['avif', 'webp', 'jpg'];
+	    const possibleSizes = ['1600', '600']; // Prefer larger size
+	    
+	    for (const size of possibleSizes) {
+	      for (const ext of possibleFormats) {
+	        const candidate = path.join(publicDir, `${base}-${size}.${ext}`);
+	        if (fs.existsSync(candidate)) {
+	          coverImage = `/photos/${slug}/${base}-${size}.${ext}`;
+	          break;
+	        }
+	      }
+	      if (coverImage) break;
+	    }
+	  }
+	  if (!coverImage) {
+	    const files = fs.readdirSync(publicDir).filter(f => f.match(/\.(jpg|webp|avif)$/));
+	    coverImage = files[0] ? `/photos/${slug}/${files[0]}` : null;
+	  }
+	}
+
+    return { slug, ...metadata, coverImage };
+  });
+}
 ---
+
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kwon.photos</title>
-    <style>
-   	body {
-      background: #e8e8e8;
-      padding: 0;
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Kwon.photos</title>
+  <style>
+    body {
+      background: #edf6f7;
+      color: #111;
       margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
     }
-    
-    .container {
-      max-width: 1400px;
-      margin: 0 auto;
-      padding: 3rem 2rem;
-    }
-    
-    .site-name {
+
+    header {
       font-size: 0.875rem;
-      margin-bottom: 0.5rem;
+      color: rgba(0, 0, 0, 0.5);
+      padding: 1.5rem 2rem;
+    }
+
+    main {
+      flex: 1;
+      margin: 0 auto;
+      padding: 10rem;
+      font-size: 1em;
+    }
+
+    h1 {
+      font-size: 2rem;
+      margin-bottom: 1rem;
+      color: #333;
+      font-weight: 90;
+    }
+
+    p.intro {
+      font-size: 0.8rem;
+      line-height: 1.6;
+      color: #333;
+      max-width: 100ch;
+      margin-bottom: 3rem;
+    }
+
+    .galleries {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 2rem;
+    }
+
+    .gallery {
+      width: 300px;
+    }
+
+    .thumb {
+      display: block;
+      aspect-ratio: 4/3;
+      background: #ccc;
+      border-radius: 0.5rem;
+      overflow: hidden;
+    }
+
+    .thumb img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .title {
+      margin-top: 0.75rem;
+      font-size: 0.8rem;
       color: #333;
     }
-    </style>
+
+    .title a {
+    	color: #333;
+    	text-decoration: none;
+    }
+
+    footer {
+      font-size: 0.75rem;
+      color: #444;
+      padding: 2rem;
+      line-height: 1.5;
+    }
+
+    footer a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    footer a:hover {
+      text-decoration: underline !important;
+    }
+
+    @media (max-width: 768px) {
+      main {
+        padding: 1.5rem;
+      }
+      .galleries {
+        flex-direction: column;
+        gap: 1.5rem;
+      }
+      .gallery {
+        width: 100%;
+      }
+    }
+  </style>
 </head>
 
 <body>
-    <div class="container">
-        <div class="site-name">kwon.photos</div>
-        <p>hello my name is placeholder text</p>
-    </div>
-    <footer></footer>
-</body>
+  <!-- <header>Kwon.photos</header> -->
 
+  <main>
+    <h1>kwon.photos</h1>
+
+    <div class="galleries">
+      {galleries.map((g) => (
+        <div class="gallery">
+          <a class="thumb" href={`/${g.slug}`}>
+  {g.coverImage && <img src={g.coverImage} alt={g.title} />}
+</a>
+          <div class="title"><a href={`/${g.slug}`}>{g.title}</a></div>
+        </div>
+      ))}
+    </div>
+    <p class="intro">
+    </p>
+  </main>
+
+<!--   <footer>
+    <div>This is <a href="/">Kwon.photos</a>, made by me (<a href="https://kwon.nyc/">Rachel</a>)</div>
+    <div><a href="https://github.com/rjkwon/photos">Source code</a></div>
+    <div>© 2025 <a href="https://kwon.nyc/">Kwon.nyc</a></div>
+  </footer> -->
+</body>
 </html>

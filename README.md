@@ -32,7 +32,6 @@ root/
 
 ## Setup
 Need to have Node.js 18+, and npm (or yarn)
-
 ### Installation
 
 1. Clone repository
@@ -218,9 +217,12 @@ Modify grid layouts in the CSS of `[slug].astro`:
 
 MIT
 
-## Acknowledgments
+## Inspo and photo sites I like
 
-- Built with [Astro](https://astro.build/)
-- Typography: [AUTHENTIC Sans](https://klim.co.nz/retail-fonts/authentic-sans/) by Klim Type Foundry
-- Image processing: [Sharp](https://sharp.pixelplumbing.com/)
-
+- [Anirudh's photos](https://anirudh.fi/photos/)
+- [Chris Glass's photo journal](https://chrisglass.com/photos/)
+- [Erica Fustero](https://www.ericafustero.com/photography)
+- [javier.computer/photos](https://javier.computer/photos/)
+- [Katie Shoots Film](https://katieshootsfilm.wordpress.com/)
+- [Maxtagram](https://www.maxtagram.com/)
+- [robins.photos](https://robins.photos/)
