@@ -1,6 +1,7 @@
 ---
 import fs from 'fs';
 import path from 'path';
+import '../styles/global.css';
 
 export async function getStaticPaths() {
   const galleriesDir = path.resolve('src/images');
@@ -141,34 +142,10 @@ if (!layoutGroups) {
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>{metadata.title} &bull; Kwon.photos</title>
   <style>
-    @font-face {
-      font-family: 'AUTHENTIC Sans';
-      src: url('/fonts/authentic-sans-90.woff2') format('woff2');
-      font-weight: 90;
-      font-style: normal;
-      font-display: swap;
-    }
-    
-    @font-face {
-      font-family: 'AUTHENTIC Sans';
-      src: url('/fonts/authentic-sans-150.woff2') format('woff2');
-      font-weight: 150;
-      font-style: normal;
-      font-display: swap;
-    }
-    
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-    
     body {
-      font-family: 'AUTHENTIC Sans', -apple-system, BlinkMacSystemFont, sans-serif;
       background: #e8e8e8;
       padding: 0;
       margin: 0;
-      font-weight: 90;
     }
     
     .container {

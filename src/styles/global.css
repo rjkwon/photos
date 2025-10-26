@@ -1,0 +1,26 @@
+@font-face {
+    font-family: 'AUTHENTIC Sans';
+    src: url('/fonts/authentic-sans-90.woff2') format('woff2');
+    font-weight: 90;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'AUTHENTIC Sans';
+    src: url('/fonts/authentic-sans-150.woff2') format('woff2');
+    font-weight: 150;
+    font-style: normal;
+    font-display: swap;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'AUTHENTIC Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-weight: 90;
+}

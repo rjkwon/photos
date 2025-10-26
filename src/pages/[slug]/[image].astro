@@ -1,6 +1,7 @@
 ---
 import fs from 'fs';
 import path from 'path';
+import '../styles/global.css';
 
 export async function getStaticPaths() {
   const galleriesDir = path.resolve('src/images');
@@ -92,35 +93,10 @@ const { slug, galleryTitle, imageName, variants, prevImage, nextImage, imageNumb
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>{imageName} &bull; {galleryTitle} &bull; Kwon.photos</title>
-  
   <style>
-    @font-face {
-      font-family: 'AUTHENTIC Sans';
-      src: url('/fonts/authentic-sans-90.woff2') format('woff2');
-      font-weight: 90;
-      font-style: normal;
-      font-display: swap;
-    }
-    
-    @font-face {
-      font-family: 'AUTHENTIC Sans';
-      src: url('/fonts/authentic-sans-150.woff2') format('woff2');
-      font-weight: 150;
-      font-style: normal;
-      font-display: swap;
-    }
-    
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-    
     body {
-      font-family: 'AUTHENTIC Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       background: #1a1a1a;
       color: #fff;
-      font-weight: 90;
       min-height: 100vh;
       display: flex;
       flex-direction: column;

@@ -1,48 +1,225 @@
-# Astro Starter Kit: Basics
+This is my photo site, built with Astro. It's a static site and you can see it live at [kwon.photos](https://kwon.photos/).
+## Stack
+- Static site generator: [Astro](https://astro.build/) 
+- Image processing and optimization: [Sharp](https://sharp.pixelplumbing.com/) 
+- Typography: [AUTHENTIC Sans](https://authentic.website/sans) by [Christina Janus](https://christinajan.us/) and [Desmond Wong](https://desmondwong.com/)
 
-```sh
-npm create astro@latest -- --template basics
+## Project Structure (basic)
 ```
-
-[![Open in StackBlitz](https://developer.stackblitz.com/img/open_in_stackblitz.svg)](https://stackblitz.com/github/withastro/astro/tree/latest/examples/basics)
-[![Open with CodeSandbox](https://assets.codesandbox.io/github/button-edit-lime.svg)](https://codesandbox.io/p/sandbox/github/withastro/astro/tree/latest/examples/basics)
-[![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/withastro/astro?devcontainer_path=.devcontainer/basics/devcontainer.json)
-
-> 🧑‍🚀 **Seasoned astronaut?** Delete this file. Have fun!
-
-![just-the-basics](https://github.com/withastro/astro/assets/2244813/a0a5533c-a856-4198-8470-2d67b1d7c554)
-
-## 🚀 Project Structure
-
-Inside of your Astro project, you'll see the following folders and files:
-
-```text
-/
-├── public/
-│   └── favicon.svg
+root/
+├── dist/                     👉 Generated static site (not tracked in git)
 ├── src/
-│   ├── layouts/
-│   │   └── Layout.astro
-│   └── pages/
-│       └── index.astro
+│   ├── images/               👉 Source images
+│   │   └── gallery-name/
+│   │       ├── meta.json     👉 Gallery metadata
+│   │       └── *.jpg         👉 Original photos
+│   ├── pages/
+│   │   ├── [slug].astro      👉 Gallery page
+│   │   ├── [slug]/
+│   │   │   └── [image].astro 👉 Individual image page
+│   │   └── index.astro       👉 Homepage
+│   └── styles/
+│       └── global.css        👉 Global styles (fonts, resets)
+├── public/
+│   ├── fonts/                👉 Web fonts
+│   └── photos/               👉 Processed images
+│       └── gallery-name/
+│           └── *.webp        👉 Optimized images
+├── scripts/
+│   └── process-images.mjs    👉 Image processing script
 └── package.json
 ```
 
-To learn more about the folder structure of an Astro project, refer to [our guide on project structure](https://docs.astro.build/en/basics/project-structure/).
+## Setup
+Need to have Node.js 18+, and npm (or yarn)
+### Installation
 
-## 🧞 Commands
+1. Clone repository
+```bash
+git clone https://github.com/rjkwon/kwon.photos.git
+cd kwon.photos
+```
 
-All commands are run from the root of the project, from a terminal:
+2. Install dependencies
+```bash
+npm install
+```
 
-| Command                   | Action                                           |
-| :------------------------ | :----------------------------------------------- |
-| `npm install`             | Installs dependencies                            |
-| `npm run dev`             | Starts local dev server at `localhost:4321`      |
-| `npm run build`           | Build your production site to `./dist/`          |
-| `npm run preview`         | Preview your build locally, before deploying     |
-| `npm run astro ...`       | Run CLI commands like `astro add`, `astro check` |
-| `npm run astro -- --help` | Get help using the Astro CLI                     |
+3. Add photos to `src/images/gallery-name/` and create a `meta.json`
+```json
+{
+  "title": "Gallery title",
+  "dateRange": "Month year to Month year",
+  "location": "City, State, Country",
+  "blurb": "Description of the gallery"
+}
+```
 
-## 👀 Want to learn more?
+4. Process images (runs `scripts/process-images.mjs`)
+```bash
+npm run process-images
+```
 
-Feel free to check [our documentation](https://docs.astro.build) or jump into our [Discord server](https://astro.build/chat).
+5. Start the dev server
+
+```bash
+npm run dev
+```
+
+See live site at `http://localhost:4321` 
+
+## Creating galleries
+
+### 1. Add source images
+
+Create a folder in `src/images/` with your gallery name
+
+```
+src/images/gallery-name/
+├── meta.json
+├── photo-01.jpg
+├── photo-02.jpg
+└── photo-03.jpg
+```
+
+### 2. Create metadata file
+
+Create `meta.json` in your gallery folder
+```json
+{
+  "title": "My Gallery",
+  "dateRange": "January 2024",
+  "location": "New York, NY",
+  "blurb": "A collection of photos from my trip."
+}
+```
+
+### 3. Process images
+
+Run the image processing script (locally)
+```bash
+npm run process-images
+```
+
+This generates optimized versions at multiple sizes (600, 1600) and formats (webP, jpeg). You could alternatively set it up to run as part of your build process, but that ended up being too bulky for me.
+
+### 4. Custom layouts (optional)
+
+Add a `groups` array to `meta.json` for custom layouts:
+
+```json
+{
+  "title": "My Gallery",
+  "dateRange": "January 2024",
+  "location": "New York, NY",
+  "blurb": "A collection of photos.",
+  "groups": [
+    {
+      "type": "hero",
+      "images": ["photo-01"]
+    },
+    {
+      "type": "side-by-side",
+      "images": ["photo-02", "photo-03"]
+    }
+  ]
+}
+```
+
+Available layout types: `hero`, `side-by-side`, `landscape-stack`, `grid-2x2`, `grid-3x3`, `featured`, `portrait-tall`, `auto`
+
+See [README-layouts.md](README-layouts.md) for full documentation.
+
+## Image Processing
+
+The `process-images.mjs` script:
+
+- Generates multiple sizes (600px, 1400px)
+- Creates multiple formats (WebP, jpeg -- could also do AVIF if that's your bag)
+- Only processes new or changed images
+- Cleans up deleted images automatically
+- Optimizes for web (quality: 90)
+
+**Settings** (in `scripts/process-images.mjs`):
+
+```javascript
+const formats = [
+  { ext: "webp", options: { quality: 90 } },
+  { ext: "jpg", options: { quality: 90 } },
+];
+const maxWidths = [600, 1600];
+```
+
+## Deployment
+
+I use Netlify, but this setup should work on any static hosting platform.
+
+1. `git push` to remote repo
+2. Connect repo to Netlify
+3. Build settings:
+    - **Build command:** `npm run build`
+    - **Publish directory:** `dist`
+4. Deploy!
+
+**Note:** Processed images in `public/photos/` are committed to Git, so no image processing happens during deployment. This keeps builds fast and reliable.
+
+## Development
+
+### Commands
+
+| Command                  | Description                          |
+| ------------------------ | ------------------------------------ |
+| `npm run dev`            | Start dev server at `localhost:4321` |
+| `npm run build`          | Build for production to `dist/`      |
+| `npm run preview`        | Preview production build locally     |
+| `npm run process-images` | Process images from `src/images/`    |
+
+### Workflow
+
+1. Add photos to `src/images/gallery-name/`
+2. Run `npm run process-images`
+3. Commit processed images: `git add public/photos/`
+4. Push to deploy
+
+## Customization
+
+### Fonts
+
+Replace AUTHENTIC Sans fonts in `public/fonts/` and update `src/styles/global.css`:
+
+```css
+@font-face {
+  font-family: 'Your font';
+  src: url('/fonts/your-font.woff2') format('woff2');
+  font-weight: 400;
+}
+```
+
+### Colors
+
+Update colors in the scoped `<style>` blocks in:
+
+- `src/pages/[slug].astro` - Gallery page
+- `src/pages/[slug]/[image].astro` - Image page
+- `src/pages/index.astro` - Homepage
+
+### Layouts
+
+Modify grid layouts in the CSS of `[slug].astro`:
+
+```css
+.group.auto {
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+}
+```
+
+## License
+
+MIT
+
+## Acknowledgments
+
+- Built with [Astro](https://astro.build/)
+- Typography: [AUTHENTIC Sans](https://klim.co.nz/retail-fonts/authentic-sans/) by Klim Type Foundry
+- Image processing: [Sharp](https://sharp.pixelplumbing.com/)
+
