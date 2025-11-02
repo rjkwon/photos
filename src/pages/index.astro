@@ -1,7 +1,8 @@
 ---
-import '../styles/global.css';
 import fs from 'fs';
 import path from 'path';
+import '../styles/global.css';
+import ThemeToggle from '../components/ThemeToggle.astro';
 
 const galleriesDir = path.resolve('src/images');
 let galleries = [];
@@ -25,9 +26,8 @@ if (fs.existsSync(galleriesDir)) {
 	if (fs.existsSync(publicDir)) {
 	  if (metadata.cover) {
 	    const base = metadata.cover;
-	    // Look for files with size suffix like "20231225_11-1600.webp"
 	    const possibleFormats = ['avif', 'webp', 'jpg'];
-	    const possibleSizes = ['1600', '600']; // Prefer larger size
+	    const possibleSizes = ['1600', '600']; 
 	    
 	    for (const size of possibleSizes) {
 	      for (const ext of possibleFormats) {
@@ -63,22 +63,23 @@ if (fs.existsSync(galleriesDir)) {
   plausible.init()
 </script>
   <title>Kwon.photos</title>
-  <style>
-    body {
-      background: #edf6f7;
-      color: #111;
-      margin: 0;
-      padding: 0;
-      display: flex;
-      flex-direction: column;
-      min-height: 100vh;
-    }
+<style>
+	body {
+	    margin: 0;
+	    padding: 0;
+	    display: flex;
+	    flex-direction: column;
+	    min-height: 100vh;
+	}
 
     header {
-      font-size: 0.875rem;
-      color: rgba(0, 0, 0, 0.5);
-      padding: 1.5rem 2rem;
-    }
+	  font-size: 0.875rem;
+	  color: var(--text-muted);
+	  padding: 1.5rem 2rem;
+	  display: flex;
+	  justify-content: space-between;
+	  align-items: center;
+	}
 
     main {
       flex: 1;
@@ -90,14 +91,14 @@ if (fs.existsSync(galleriesDir)) {
     h1 {
       font-size: 2rem;
       margin-bottom: 1rem;
-      color: #333;
+      color: var(--text-secondary);
       font-weight: 90;
     }
 
     p.intro {
       font-size: 0.8rem;
       line-height: 1.6;
-      color: #333;
+      color: var(--text-secondary);
       max-width: 100ch;
       margin-bottom: 3rem;
     }
@@ -115,10 +116,15 @@ if (fs.existsSync(galleriesDir)) {
     .thumb {
       display: block;
       aspect-ratio: 4/3;
-      background: #ccc;
+      background: var(--thumb-bg);
       border-radius: 0.5rem;
       overflow: hidden;
+      transition: transform 0.2s;
     }
+
+  	.thumb:hover {
+  transform: scale(1.02);
+}
 
     .thumb img {
       width: 100%;
@@ -130,17 +136,17 @@ if (fs.existsSync(galleriesDir)) {
     .title {
       margin-top: 0.75rem;
       font-size: 0.8rem;
-      color: #333;
+      color: var(--text-secondary);
     }
 
     .title a {
-    	color: #333;
+    	color: var(--text-secondary);
     	text-decoration: none;
     }
 
     footer {
       font-size: 0.75rem;
-      color: #444;
+      color: var(--text-secondary);
       padding: 2rem;
       line-height: 1.5;
     }
@@ -170,26 +176,20 @@ if (fs.existsSync(galleriesDir)) {
 </head>
 
 <body>
-  <!-- <header>Kwon.photos</header> -->
-
-  <main>
-    <h1>kwon.photos</h1>
-
-    <div class="galleries">
-      {galleries.map((g) => (
-        <div class="gallery">
-          <a class="thumb" href={`/${g.slug}`}>
-  {g.coverImage && <img src={g.coverImage} alt={g.title} />}
-</a>
-          <div class="title"><a href={`/${g.slug}`}>{g.title}</a></div>
-        </div>
-      ))}
-    </div>
-    <p class="intro">
-    </p>
-  </main>
-
-<!--   <footer>
+	<header>
+	    <span>Kwon.photos</span>
+	    <ThemeToggle />
+	</header>
+    <main>
+        <div class="galleries">
+            {galleries.map((g) => (
+            <div class="gallery">
+                <a class="thumb" href={`/${g.slug}`}> {g.coverImage && <img src={g.coverImage} alt={g.title} />}
+                </a>
+                <div class="title"><a href={`/${g.slug}`}>{g.title} </a> </div> </div> ))} </div> <p class="intro">
+                        </p>
+    </main>
+    <!--   <footer>
     <div>This is <a href="/">Kwon.photos</a>, made by me (<a href="https://kwon.nyc/">Rachel</a>)</div>
     <div><a href="https://github.com/rjkwon/photos">Source code</a></div>
     <div>© 2025 <a href="https://kwon.nyc/">Kwon.nyc</a></div>

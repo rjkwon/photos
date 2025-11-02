@@ -2,6 +2,7 @@
 import fs from 'fs';
 import path from 'path';
 import '../styles/global.css';
+import ThemeToggle from '../components/ThemeToggle.astro';
 
 export async function getStaticPaths() {
   const galleriesDir = path.resolve('src/images');
@@ -149,7 +150,6 @@ if (!layoutGroups) {
   <title>{metadata.title} &bull; Kwon.photos</title>
   <style>
     body {
-      background: #edf6f7;
       padding: 0;
       margin: 0;
       line-height: 1.2rem;
@@ -164,7 +164,7 @@ if (!layoutGroups) {
     .site-name {
       font-size: 0.875rem;
       margin-bottom: 0.5rem;
-      color: #333;
+      color: var(--text-secondary);
     }
     
     header {
@@ -180,12 +180,11 @@ if (!layoutGroups) {
       font-size: 3rem;
       margin-bottom: 2.5rem;
       font-weight: 90;
-      color: #1a1a1a;
-      /*letter-spacing: -0.02em;*/
+      color: var(--text-secondary);
     }
 
     a {
-      color: #333;
+      color: var(--text-secondary);
       text-decoration: none;
     }
 
@@ -202,13 +201,13 @@ if (!layoutGroups) {
     
     .meta-left {
       font-size: 0.9375rem;
-      color: #333;
+      color: var(--text-secondary);
       line-height: 1.6;
     }
     
     .meta-right {
       font-size: 1rem;
-      color: #333;
+      color: var(--text-secondary);
       line-height: 1.7;
     }
     
@@ -312,7 +311,7 @@ if (!layoutGroups) {
     .no-images {
       padding: 3rem;
       text-align: center;
-      color: #999;
+      color: var(--text-secondary);
       font-size: 1.125rem;
       background: white;
       border-radius: 12px;
@@ -321,7 +320,7 @@ if (!layoutGroups) {
 </head>
 <body>
   <div class="container">
-    <div class="site-name"><a href="/">kwon.photos</a></div>
+    <div class="site-name"><a href="/">kwon.photos</a></div><ThemeToggle />
     
     <header>
       <h1>{metadata.title}</h1>
@@ -349,7 +348,6 @@ if (!layoutGroups) {
               return null;
             }
             
-            // Use largest size for lightbox
             const fullSizeUrl = image.variants.jpg['1600'] || image.variants.webp['1600'] || image.fallback;
             
             return (

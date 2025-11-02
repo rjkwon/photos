@@ -1,0 +1,35 @@
+---
+---
+<button class="theme-toggle" id="theme-toggle">
+    <span class="theme-toggle-light">☀️ Light</span>
+    <span class="theme-toggle-dark" style="display: none;">🌙 Dark</span>
+</button>
+<script>
+const toggle = document.getElementById('theme-toggle');
+const lightText = document.querySelector('.theme-toggle-light');
+const darkText = document.querySelector('.theme-toggle-dark');
+
+const currentTheme = localStorage.getItem('theme') || 'light';
+document.documentElement.setAttribute('data-theme', currentTheme);
+
+if (currentTheme === 'dark') {
+    lightText.style.display = 'none';
+    darkText.style.display = 'inline';
+}
+
+toggle.addEventListener('click', () => {
+    const theme = document.documentElement.getAttribute('data-theme');
+    const newTheme = theme === 'light' ? 'dark' : 'light';
+
+    document.documentElement.setAttribute('data-theme', newTheme);
+    localStorage.setItem('theme', newTheme);
+
+    if (newTheme === 'dark') {
+        lightText.style.display = 'none';
+        darkText.style.display = 'inline';
+    } else {
+        lightText.style.display = 'inline';
+        darkText.style.display = 'none';
+    }
+});
+</script>
