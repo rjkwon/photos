@@ -192,14 +192,11 @@ const { slug, galleryTitle, imageName, variants, prevImage, nextImage, imageNumb
     
     .nav-button {
       pointer-events: auto;
-      background: rgba(255, 255, 255, 0.1);
-      border: 1px solid rgba(255, 255, 255, 0.2);
       color: white;
       padding: 1rem 1.5rem;
-      border-radius: 8px;
       cursor: pointer;
       font-family: inherit;
-      font-size: 0.875rem;
+      font-size: 2rem;
       transition: all 0.2s;
       backdrop-filter: blur(10px);
     }
@@ -238,7 +235,7 @@ const { slug, galleryTitle, imageName, variants, prevImage, nextImage, imageNumb
 </head>
 <body>
   <header>
-    <a href={`/${slug}`} class="back-link">← Back to {galleryTitle}</a>
+    <a href={`/${slug}`} class="back-link">👈 Back to {galleryTitle}</a>
     <div class="image-counter">{imageNumber} / {totalImages}</div>
   </header>
   

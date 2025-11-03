@@ -1,8 +1,9 @@
 ---
 import fs from 'fs';
 import path from 'path';
-import '../styles/global.css';
+import ThemeScript from '../components/ThemeScript.astro';
 import ThemeToggle from '../components/ThemeToggle.astro';
+import '../styles/global.css';
 
 export async function getStaticPaths() {
   const galleriesDir = path.resolve('src/images');
@@ -74,7 +75,6 @@ export async function getStaticPaths() {
       };
     }
     
-    // Group files by base name (e.g., "20231217_01")
     const imageGroups = {};
     allFiles.forEach(file => {
       const match = file.match(/^(.+?)-\d+\.(jpg|webp|avif)$/);
@@ -87,7 +87,6 @@ export async function getStaticPaths() {
       }
     });
     
-    // Create image data lookup
     const imageData = {};
     Object.entries(imageGroups).forEach(([baseName, files]) => {
       const variants = {
@@ -123,12 +122,11 @@ export async function getStaticPaths() {
 
 const { slug, metadata, imageData } = Astro.props;
 
-// If no custom groups defined, create smart default layout
+// Default layout (if no custom groups defined)
 let layoutGroups = metadata.groups;
 if (!layoutGroups) {
   const imageNames = Object.keys(imageData).sort();
   
-  // Single group with all images - CSS Grid will handle the layout
   layoutGroups = [{
     type: 'auto',
     images: imageNames
@@ -138,279 +136,258 @@ if (!layoutGroups) {
 
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="robots" content="noindex, nofollow">
-<script async src="https://plausible.io/js/pa-QYxd5Cj6D5P36ZkyJqw1s.js"></script>
-<script>
-  window.plausible=window.plausible||function(){(plausible.q=plausible.q||[]).push(arguments)},plausible.init=plausible.init||function(i){plausible.o=i||{}};
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
+    <ThemeScript />
+    <script async src="https://plausible.io/js/pa-QYxd5Cj6D5P36ZkyJqw1s.js"></script>
+    <script>
+        window.plausible=window.plausible||function(){(plausible.q=plausible.q||[]).push(arguments)},plausible.init=plausible.init||function(i){plausible.o=i||{}};
   plausible.init()
 </script>
-  <title>{metadata.title} &bull; Kwon.photos</title>
-  <style>
+    <title>{metadata.title} &bull; Kwon.photos</title>
+    <style>
     body {
-      padding: 0;
-      margin: 0;
-      line-height: 1.2rem;
+        padding: 0;
+        margin: 0;
+        line-height: 1.2rem;
     }
-    
+
     .container {
-      max-width: 1400px;
-      margin: 0 auto;
-      padding: 3rem 2rem;
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 3rem 2rem;
     }
-    
-    .site-name {
-      font-size: 0.875rem;
-      margin-bottom: 0.5rem;
-      color: var(--text-secondary);
-    }
-    
+
     header {
-      margin: 10rem 0;
+      margin: 0 auto 10rem;
+        color: var(--text-muted);
+        font-size: 0.85em;
     }
 
     footer {
-      margin: 10rem 0;
-      font-size: 0.8rem;
+        margin: 10rem 0;
+        font-size: 0.8rem;
     }
-    
+
     h1 {
-      font-size: 3rem;
-      margin-bottom: 2.5rem;
-      font-weight: 90;
-      color: var(--text-secondary);
+        font-size: 3rem;
+        margin-bottom: 2.5rem;
+        font-weight: 90;
+        color: var(--text-secondary);
     }
 
     a {
-      color: var(--text-secondary);
-      text-decoration: none;
+        color: var(--text-secondary);
+        text-decoration: none;
     }
 
     a:hover {
-      text-decoration: underline;
+        text-decoration: underline;
     }
-    
+
     .meta-info {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 2rem;
-      margin-bottom: 2rem;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 2rem;
+        margin-bottom: 2rem;
     }
-    
+
     .meta-left {
-      font-size: 0.9375rem;
-      color: var(--text-secondary);
-      line-height: 1.6;
+        font-size: 0.9375rem;
+        color: var(--text-secondary);
+        line-height: 1.6;
     }
-    
+
     .meta-right {
-      font-size: 1rem;
-      color: var(--text-secondary);
-      line-height: 1.7;
+        font-size: 1rem;
+        color: var(--text-secondary);
+        line-height: 1.7;
     }
-    
+
     @media (max-width: 768px) {
-      .meta-info {
-        grid-template-columns: 1fr;
-        gap: 1.5rem;
-      }
-      
-      h1 {
-        font-size: 2rem;
-      }
+        .meta-info {
+            grid-template-columns: 1fr;
+            gap: 1.5rem;
+        }
+
+        h1 {
+            font-size: 2rem;
+        }
     }
-    
+
     .gallery {
-      display: flex;
-      flex-direction: column;
-      gap: 1.5rem;
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+        margin-top: 10rem;
     }
-    
+
     .group {
-      display: grid;
-      gap: 1.5rem;
+        display: grid;
+        gap: 1.5rem;
     }
-    
+
     .group.auto {
-      grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-      grid-auto-flow: dense;
+        grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+        grid-auto-flow: dense;
     }
-    
+
     .group.portrait-tall {
-      grid-template-columns: 1fr;
-      max-width: 600px;
+        grid-template-columns: 1fr;
+        max-width: 600px;
     }
-    
+
     .group.landscape-stack {
-      grid-template-columns: repeat(3, 1fr);
+        grid-template-columns: repeat(3, 1fr);
     }
-    
+
     .group.side-by-side {
-      grid-template-columns: repeat(2, 1fr);
+        grid-template-columns: repeat(2, 1fr);
     }
-    
+
     .group.grid-2x2 {
-      grid-template-columns: repeat(2, 1fr);
-      max-width: 1000px;
+        grid-template-columns: repeat(2, 1fr);
+        max-width: 1000px;
     }
-    
+
     .group.grid-3x3 {
-      grid-template-columns: repeat(3, 1fr);
+        grid-template-columns: repeat(3, 1fr);
     }
-    
+
     .group.hero {
-      grid-template-columns: 1fr;
+        grid-template-columns: 1fr;
     }
-    
+
     .group.featured {
-      grid-template-columns: 2fr 1fr;
+        grid-template-columns: 2fr 1fr;
     }
-    
+
     /* Responsive adjustments */
     @media (max-width: 768px) {
-      .group.auto,
-      .group.side-by-side,
-      .group.grid-2x2,
-      .group.featured {
-        grid-template-columns: 1fr;
-      }
-      
-      .group.landscape-stack {
-        grid-template-columns: 1fr;
-      }
-      
-      .group.grid-3x3 {
-        grid-template-columns: repeat(2, 1fr);
-      }
-    }
-    
-    .gallery-item {
-      position: relative;
-      overflow: hidden;
-      border-radius: 12px;
-      background: #f5f5f5;
-      aspect-ratio: auto;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-      cursor: pointer;
-    }
-    
-    .gallery-item img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      display: block;
-      transition: transform 0.3s ease;
-    }
-    
-    .gallery-item:hover img {
-      transform: scale(1.02);
-    }
-    
-    .no-images {
-      padding: 3rem;
-      text-align: center;
-      color: var(--text-secondary);
-      font-size: 1.125rem;
-      background: white;
-      border-radius: 12px;
-    }
-  </style>
-</head>
-<body>
-  <div class="container">
-    <div class="site-name"><a href="/">kwon.photos</a></div><ThemeToggle />
-    
-    <header>
-      <h1>{metadata.title}</h1>
-      
-      <div class="meta-info">
-        <div class="meta-left">
-          {metadata.dateRange && <div>{metadata.dateRange}</div>}
-          {metadata.location && <div>{metadata.location}</div>}
-        </div>
-        
-        <div class="meta-right">
-          {metadata.blurb && <p>{metadata.blurb}</p>}
-        </div>
-      </div>
-    </header>
-  
-  {Object.keys(imageData).length > 0 ? (
-    <div class="gallery" id="gallery">
-      {layoutGroups.map((group, groupIndex) => (
-        <div class={`group ${group.type}`}>
-          {group.images.map((imageName, imageIndex) => {
-            const image = imageData[imageName];
-            if (!image) {
-              console.warn(`Image not found: ${imageName}`);
-              return null;
-            }
-            
-            const fullSizeUrl = image.variants.jpg['1600'] || image.variants.webp['1600'] || image.fallback;
-            
-            return (
-              <a 
-                href={`/${slug}/${imageName}`} 
-                class="gallery-item"
-                rel="noopener noreferrer"
-              >
-                <picture>
-                  {image.variants.avif && Object.keys(image.variants.avif).length > 0 && (
-                    <source
-                      type="image/avif"
-                      srcset={Object.entries(image.variants.avif)
-                        .map(([size, url]) => `${url} ${size}w`)
-                        .join(', ')}
-                      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                    />
-                  )}
-                  
-                  {image.variants.webp && Object.keys(image.variants.webp).length > 0 && (
-                    <source
-                      type="image/webp"
-                      srcset={Object.entries(image.variants.webp)
-                        .map(([size, url]) => `${url} ${size}w`)
-                        .join(', ')}
-                      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                    />
-                  )}
-                  
-                  {image.variants.jpg && Object.keys(image.variants.jpg).length > 0 && (
-                    <source
-                      type="image/jpeg"
-                      srcset={Object.entries(image.variants.jpg)
-                        .map(([size, url]) => `${url} ${size}w`)
-                        .join(', ')}
-                      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                    />
-                  )}
-                  
-                  <img
-                    src={image.fallback}
-                    alt={image.baseName}
-                    loading="lazy"
-                  />
-                </picture>
-              </a>
-            );
-          })}
-        </div>
-      ))}
-    </div>
-  ) : (
-    <div class="no-images">
-      <p>No images found in this gallery.</p>
-      <p>Run <code>npm run process-images</code> to generate images.</p>
-    </div>
-  )}
 
-  
-  <footer>
-    <div>This is <a href="/">Kwon.photos</a>, made by me (<a href="https://kwon.nyc/">Rachel</a>)</div>
-    <div><a href="https://github.com/rjkwon/photos">Source code</a></div>
-    <div>© 2025 <a href="https://kwon.nyc/">Kwon.nyc</a></div>
-  </footer>
+        .group.auto,
+        .group.side-by-side,
+        .group.grid-2x2,
+        .group.featured {
+            grid-template-columns: 1fr;
+        }
+
+        .group.landscape-stack {
+            grid-template-columns: 1fr;
+        }
+
+        .group.grid-3x3 {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+
+    .gallery-item {
+        position: relative;
+        overflow: hidden;
+        border-radius: 12px;
+        background: #f5f5f5;
+        aspect-ratio: auto;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        cursor: pointer;
+    }
+
+    .gallery-item img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+        transition: transform 0.3s ease;
+    }
+
+    .gallery-item:hover img {
+        transform: scale(1.02);
+    }
+
+    .no-images {
+        padding: 3rem;
+        text-align: center;
+        color: var(--text-secondary);
+        font-size: 1.125rem;
+        background: white;
+        border-radius: 12px;
+    }
+</style>
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <span><a href="/">Kwon.photos</a></span>
+        </header>
+        <main>
+            <h1>{metadata.title}</h1>
+            <div class="meta-info">
+                <div class="meta-left">
+                    {metadata.dateRange && <div>{metadata.dateRange}</div>}
+                    {metadata.location && <div>{metadata.location}</div>}
+                </div>
+                <div class="meta-right">
+                    {metadata.blurb && <p>{metadata.blurb}</p>}
+                </div>
+            </div>
+
+        {Object.keys(imageData).length > 0 ? (
+        <div class="gallery" id="gallery">
+            {layoutGroups.map((group, groupIndex) => (
+            <div class={`group ${group.type}`}>
+                {group.images.map((imageName, imageIndex) => {
+                const image = imageData[imageName];
+                if (!image) {
+                console.warn(`Image not found: ${imageName}`);
+                return null;
+                }
+                const fullSizeUrl = image.variants.jpg['1600'] || image.variants.webp['1600'] || image.fallback;
+                return (
+                <a href={`/${slug}/${imageName}`} class="gallery-item" rel="noopener noreferrer">
+                    <picture>
+                        {image.variants.avif && Object.keys(image.variants.avif).length > 0 && (
+                        <source type="image/avif" srcset={Object.entries(image.variants.avif) .map(([size, url])=> `${url} ${size}w`)
+                        .join(', ')}
+                        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                        />
+                        )}
+                        {image.variants.webp && Object.keys(image.variants.webp).length > 0 && (
+                        <source type="image/webp" srcset={Object.entries(image.variants.webp) .map(([size, url])=> `${url} ${size}w`)
+                        .join(', ')}
+                        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                        />
+                        )}
+                        {image.variants.jpg && Object.keys(image.variants.jpg).length > 0 && (
+                        <source type="image/jpeg" srcset={Object.entries(image.variants.jpg) .map(([size, url])=> `${url} ${size}w`)
+                        .join(', ')}
+                        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                        />
+                        )}
+                        <img src={image.fallback} alt={image.baseName} loading="lazy" />
+                    </picture>
+                </a>
+                );
+                })}
+            </div>
+            ))}
+        </div>
+        ) : (
+        <div class="no-images">
+            <p>No images found in this gallery.</p>
+            <p>Run <code>npm run process-images</code> to generate images.</p>
+        </div>
+        )}
+      </main>
+        <footer>
+            <div>This is <a href="/">Kwon.photos</a>, made by me (<a href="https://kwon.nyc/">Rachel</a>)</div>
+            <div><a href="https://github.com/rjkwon/photos">Source code</a></div>
+            <div>© 2025 <a href="https://kwon.nyc/">Kwon.nyc</a></div>
+            <div>
+                <ThemeToggle />
+            </div>
+        </footer>
 </body>
 </html>

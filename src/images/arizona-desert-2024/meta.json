@@ -1,13 +1,8 @@
 {
-  "title": "Arizona desert 2024",
+  "title": "Sonoran desert",
+  "subtitle": "",
   "dateRange": "Feb–Mar 2024",
   "location": "Phoenix metropolitan area",
   "cover": "20240228_02",
-  "blurb": "After quitting my job at the beginning of 2024, I spent some time in the American West before starting my new gig. I visited my parents who were snowbirding in Arizona, and we went on lots of walks. I haven't spent much time in the desert before but I enjoyed it.",
-  "groups": [
-    {
-      "type": "portrait-tall",
-      "images": ["20240228_01"]
-    }
-  ]
+  "blurb": "After quitting my job at the beginning of 2024, I took a month off between gigs and spent some time in the American West. This was the fourth and final leg of my trip, where I visited my parents who were snowbirding in Arizona. I haven't spent much time in the desert before, but I enjoyed the dry air (especially compared to east coast winters) and sunny weather."
 }
