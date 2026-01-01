@@ -22,32 +22,38 @@ if (fs.existsSync(galleriesDir)) {
       metadata = { ...metadata, ...meta };
     }
 
-	const publicDir = path.join('public/photos', slug);
-	let coverImage = null;
-	if (fs.existsSync(publicDir)) {
-	  if (metadata.cover) {
-	    const base = metadata.cover;
-	    const possibleFormats = ['avif', 'webp', 'jpg'];
-	    const possibleSizes = ['1600', '600']; 
-	    
-	    for (const size of possibleSizes) {
-	      for (const ext of possibleFormats) {
-	        const candidate = path.join(publicDir, `${base}-${size}.${ext}`);
-	        if (fs.existsSync(candidate)) {
-	          coverImage = `/photos/${slug}/${base}-${size}.${ext}`;
-	          break;
-	        }
-	      }
-	      if (coverImage) break;
-	    }
-	  }
-	  if (!coverImage) {
-	    const files = fs.readdirSync(publicDir).filter(f => f.match(/\.(jpg|webp|avif)$/));
-	    coverImage = files[0] ? `/photos/${slug}/${files[0]}` : null;
-	  }
-	}
+    const publicDir = path.join('public/photos', slug);
+    let coverImage = null;
+    let imageCount = 0;
+    
+    if (fs.existsSync(publicDir)) {
+      // Count unique images (base names, ignoring sizes/formats)
+      const files = fs.readdirSync(publicDir).filter(f => f.match(/\.(jpg|webp|avif)$/));
+      const baseNames = new Set(files.map(f => f.replace(/-\d+\.(jpg|webp|avif)$/, '')));
+      imageCount = baseNames.size;
+      
+      if (metadata.cover) {
+        const base = metadata.cover;
+        const possibleFormats = ['avif', 'webp', 'jpg'];
+        const possibleSizes = ['1600', '600']; 
+        
+        for (const size of possibleSizes) {
+          for (const ext of possibleFormats) {
+            const candidate = path.join(publicDir, `${base}-${size}.${ext}`);
+            if (fs.existsSync(candidate)) {
+              coverImage = `/photos/${slug}/${base}-${size}.${ext}`;
+              break;
+            }
+          }
+          if (coverImage) break;
+        }
+      }
+      if (!coverImage) {
+        coverImage = files[0] ? `/photos/${slug}/${files[0]}` : null;
+      }
+    }
 
-    return { slug, ...metadata, coverImage };
+    return { slug, ...metadata, imageCount, coverImage };
   });
 }
 ---
@@ -123,7 +129,7 @@ if (fs.existsSync(galleriesDir)) {
         display: flex;
         flex-wrap: wrap;
         gap: 2rem;
-      	width: 100%;
+        width: 100%;
     }
 
     .gallery {
@@ -195,7 +201,7 @@ if (fs.existsSync(galleriesDir)) {
 </head>
 
 <body>
-	<div class="container">
+    <div class="container">
     <header>
         <span>Kwon.photos</span>
     </header>
@@ -205,7 +211,7 @@ if (fs.existsSync(galleriesDir)) {
             <div class="gallery">
                 <a class="thumb" href={`/${g.slug}`}> {g.coverImage && <img src={g.coverImage} alt={g.title} />}
                 </a>
-                <div class="title"><a href={`/${g.slug}`}>{g.title} </a></div> <p class="intro">{g.subtitle}</p></div> ))} </div> 
+                <div class="title"><a href={`/${g.slug}`}>{g.title} </a></div> <p class="intro">{g.subtitle || `${g.imageCount} ${g.imageCount === 1 ? 'photo' : 'photos'}`}</p></div> ))} </div> 
     </main>
     <footer>
         <div>This is <a href="/">Kwon.photos</a>, made by me (<a href="https://kwon.nyc/">Rachel</a>)</div>
