@@ -25,18 +25,18 @@ if (fs.existsSync(galleriesDir)) {
     const publicDir = path.join('public/photos', slug);
     let coverImage = null;
     let imageCount = 0;
-    
+
     if (fs.existsSync(publicDir)) {
       // Count unique images (base names, ignoring sizes/formats)
       const files = fs.readdirSync(publicDir).filter(f => f.match(/\.(jpg|webp|avif)$/));
       const baseNames = new Set(files.map(f => f.replace(/-\d+\.(jpg|webp|avif)$/, '')));
       imageCount = baseNames.size;
-      
+
       if (metadata.cover) {
         const base = metadata.cover;
         const possibleFormats = ['avif', 'webp', 'jpg'];
-        const possibleSizes = ['1600', '600']; 
-        
+        const possibleSizes = ['1600', '600'];
+
         for (const size of possibleSizes) {
           for (const ext of possibleFormats) {
             const candidate = path.join(publicDir, `${base}-${size}.${ext}`);
@@ -111,14 +111,9 @@ if (fs.existsSync(galleriesDir)) {
     }
 
     .galleries {
-        display: flex;
-        flex-wrap: wrap;
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
         gap: 2rem;
-        width: 100%;
-    }
-
-    .gallery {
-        width: 40%;
     }
 
     .thumb {
@@ -158,12 +153,8 @@ if (fs.existsSync(galleriesDir)) {
         }
 
         .galleries {
-            flex-direction: column;
+            grid-template-columns: 1fr;
             gap: 0;
-        }
-
-        .gallery {
-            width: 100%;
         }
     }
     </style>
@@ -175,14 +166,14 @@ if (fs.existsSync(galleriesDir)) {
         <span>Kwon.photos</span>
         <ThemeToggle />
     </header>
-    
+
     <main>
         <div class="galleries">
             {galleries.map((g) => (
             <div class="gallery">
                 <a class="thumb" href={`/${g.slug}`}> {g.coverImage && <img src={g.coverImage} alt={g.title} />}
                 </a>
-                <div class="title"><a href={`/${g.slug}`}>{g.title} </a></div> <p class="intro">{g.subtitle || `${g.imageCount} ${g.imageCount === 1 ? 'photo' : 'photos'}`}</p></div> ))} </div> 
+                <div class="title"><a href={`/${g.slug}`}>{g.title} </a></div> <p class="intro">{g.subtitle || `${g.imageCount} ${g.imageCount === 1 ? 'photo' : 'photos'}`}</p></div> ))} </div>
     </main>
     <footer>
         <div>This is <a href="/">Kwon.photos</a>, made by me (<a href="https://kwon.nyc/">Rachel</a>)</div>

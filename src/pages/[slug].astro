@@ -7,44 +7,44 @@ import '../styles/global.css';
 
 export async function getStaticPaths() {
   const galleriesDir = path.resolve('src/images');
-  
+
   // Ensure galleries directory exists
   if (!fs.existsSync(galleriesDir)) {
     console.warn('⚠️ src/images directory not found');
     return [];
   }
-  
+
   const galleryFolders = fs.readdirSync(galleriesDir).filter((f) => {
     const fullPath = path.join(galleriesDir, f);
     return fs.statSync(fullPath).isDirectory();
   });
-  
+
   console.log("📂 Galleries found:", galleryFolders);
-  
+
   return galleryFolders.map((slug) => {
     const galleryPath = path.join(galleriesDir, slug);
     const publicGalleryPath = path.join('public/photos', slug);
-    
+
     // Read metadata
     const metaPath = path.join(galleryPath, 'meta.json');
-    let metadata = { 
-      title: slug.replace(/-/g, ' '), 
+    let metadata = {
+      title: slug.replace(/-/g, ' '),
       blurb: '',
       dateRange: '',
       location: '',
-      groups: null 
+      groups: null
     };
-    
+
     if (fs.existsSync(metaPath)) {
       const metaContent = fs.readFileSync(metaPath, 'utf-8');
       metadata = { ...metadata, ...JSON.parse(metaContent) };
     }
-    
+
     // Get source images from src/images to determine what should exist
-    const sourceFiles = fs.existsSync(galleryPath) 
+    const sourceFiles = fs.existsSync(galleryPath)
       ? fs.readdirSync(galleryPath).filter((f) => /\.(jpg|jpeg|png|heic|dng)$/i.test(f))
       : [];
-    
+
     // If no processed images yet, create placeholder imageData
     if (!fs.existsSync(publicGalleryPath)) {
       console.warn(`⚠️ No processed images found for ${slug} - they will be generated during build`);
@@ -63,7 +63,7 @@ export async function getStaticPaths() {
         props: { slug, metadata, imageData }
       };
     }
-    
+
     let allFiles = [];
     try {
       allFiles = fs.readdirSync(publicGalleryPath);
@@ -74,7 +74,7 @@ export async function getStaticPaths() {
         props: { slug, metadata, imageData: {} }
       };
     }
-    
+
     const imageGroups = {};
     allFiles.forEach(file => {
       const match = file.match(/^(.+?)-\d+\.(jpg|webp|avif)$/);
@@ -86,7 +86,7 @@ export async function getStaticPaths() {
         imageGroups[baseName].push(file);
       }
     });
-    
+
     const imageData = {};
     Object.entries(imageGroups).forEach(([baseName, files]) => {
       const variants = {
@@ -94,7 +94,7 @@ export async function getStaticPaths() {
         webp: {},
         jpg: {}
       };
-      
+
       files.forEach(file => {
         const sizeMatch = file.match(/-(\d+)\.(jpg|webp|avif)$/);
         if (sizeMatch) {
@@ -103,16 +103,16 @@ export async function getStaticPaths() {
           variants[format][size] = `/photos/${slug}/${file}`;
         }
       });
-      
+
       imageData[baseName] = {
         baseName,
         variants,
         fallback: variants.jpg['1000'] || variants.jpg['480'] || Object.values(variants.jpg)[0]
       };
     });
-    
+
     console.log(`✅ Found ${Object.keys(imageData).length} unique images in ${slug}`);
-    
+
     return {
       params: { slug },
       props: { slug, metadata, imageData }
@@ -126,7 +126,7 @@ const { slug, metadata, imageData } = Astro.props;
 let layoutGroups = metadata.groups;
 if (!layoutGroups) {
   const imageNames = Object.keys(imageData).sort();
-  
+
   layoutGroups = [{
     type: 'auto',
     images: imageNames
@@ -142,11 +142,6 @@ if (!layoutGroups) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="robots" content="noindex, nofollow">
     <ThemeScript />
-    <script async src="https://plausible.io/js/pa-QYxd5Cj6D5P36ZkyJqw1s.js"></script>
-    <script>
-        window.plausible=window.plausible||function(){(plausible.q=plausible.q||[]).push(arguments)},plausible.init=plausible.init||function(i){plausible.o=i||{}};
-  plausible.init()
-</script>
     <title>{metadata.title} &bull; Kwon.photos</title>
     <style>
     body {
@@ -309,6 +304,7 @@ if (!layoutGroups) {
     <div class="container">
         <header>
             <span><a href="/">Kwon.photos</a></span>
+            <ThemeToggle />
         </header>
         <main>
             <h1>{metadata.title}</h1>
