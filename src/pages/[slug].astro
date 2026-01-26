@@ -297,6 +297,20 @@ if (!layoutGroups) {
         background: white;
         border-radius: 12px;
     }
+
+    @media (max-width: 768px) {
+        .container {
+            padding: 1.5rem;   
+            margin: 0;
+        }
+
+        .galleries {
+            grid-template-columns: 1fr;
+            gap: 0;
+            padding: 0;
+            margin: 0;
+        }
+    }
 </style>
 </head>
 
