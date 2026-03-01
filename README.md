@@ -26,7 +26,8 @@ root/
 │       └── gallery-name/
 │           └── *.webp        👉 Optimized images
 ├── scripts/
-│   └── process-images.mjs    👉 Image processing script
+│   ├── process-images.mjs    👉 Image processing script
+│   └── admin.mjs             👉 Local caption/alt text editor
 └── package.json
 ```
 
@@ -103,7 +104,30 @@ npm run process-images
 
 This generates optimized versions at multiple sizes (600, 1600) and formats (webP, jpeg). You could alternatively set it up to run as part of your build process, but that ended up being too bulky for me.
 
-### 4. Custom layouts (optional)
+### 4. Add captions and alt text (optional)
+
+Run the local admin UI to add captions and alt text to individual images:
+
+```bash
+npm run admin
+```
+
+Open `http://localhost:3001`. Each image has two fields:
+- **Alt text** — used by screen readers and when images fail to load
+- **Caption** — displayed below the image in the gallery
+
+Changes save automatically when you click out of a field. This writes an `images` key into the gallery's `meta.json`:
+
+```json
+{
+  "title": "My Gallery",
+  "images": {
+    "photo-01": { "alt": "Describe what's in the photo", "caption": "Optional caption" }
+  }
+}
+```
+
+### 5. Custom layouts (optional)
 
 Add a `groups` array to `meta.json` for custom layouts:
 
@@ -173,13 +197,15 @@ I use Netlify, but this setup should work on any static hosting platform.
 | `npm run build`          | Build for production to `dist/`      |
 | `npm run preview`        | Preview production build locally     |
 | `npm run process-images` | Process images from `src/images/`    |
+| `npm run admin`          | Open caption/alt text editor UI      |
 
 ### Workflow
 
 1. Add photos to `src/images/gallery-name/`
 2. Run `npm run process-images`
-3. Commit processed images: `git add public/photos/`
-4. Push to deploy
+3. Run `npm run admin` to add captions and alt text
+4. Commit everything: `git add src/images/ public/photos/`
+5. Push to deploy
 
 ## Customization
 

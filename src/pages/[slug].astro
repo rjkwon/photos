@@ -55,7 +55,9 @@ export async function getStaticPaths() {
         imageData[baseName] = {
           baseName,
           variants: { avif: {}, webp: {}, jpg: {} },
-          fallback: ''
+          fallback: '',
+          alt: metadata.images?.[baseName]?.alt || '',
+          caption: metadata.images?.[baseName]?.caption || '',
         };
       });
       return {
@@ -107,7 +109,9 @@ export async function getStaticPaths() {
       imageData[baseName] = {
         baseName,
         variants,
-        fallback: variants.jpg['1000'] || variants.jpg['480'] || Object.values(variants.jpg)[0]
+        fallback: variants.jpg['1000'] || variants.jpg['480'] || Object.values(variants.jpg)[0],
+        alt: metadata.images?.[baseName]?.alt || '',
+        caption: metadata.images?.[baseName]?.caption || '',
       };
     });
 
@@ -364,7 +368,7 @@ if (!layoutGroups) {
                         sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
                         />
                         )}
-                        <img src={image.fallback} alt={image.baseName} loading="lazy" />
+                        <img src={image.fallback} alt={image.alt || image.baseName} loading="lazy" />
                     </picture>
                 </a>
                 );

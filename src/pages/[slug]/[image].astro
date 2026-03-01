@@ -64,6 +64,8 @@ export async function getStaticPaths() {
       const prevImage = index > 0 ? imageNames[index - 1] : null;
       const nextImage = index < imageNames.length - 1 ? imageNames[index + 1] : null;
       
+      const imageMetadata = metadata.images?.[imageName] || {};
+
       paths.push({
         params: { slug, image: imageName },
         props: {
@@ -75,7 +77,9 @@ export async function getStaticPaths() {
           nextImage,
           imageNumber: index + 1,
           totalImages: imageNames.length,
-          fallback: variants.jpg['1600'] || variants.webp['1600'] || Object.values(variants.jpg)[0]
+          fallback: variants.jpg['1600'] || variants.webp['1600'] || Object.values(variants.jpg)[0],
+          alt: imageMetadata.alt || '',
+          caption: imageMetadata.caption || '',
         }
       });
     });
@@ -84,7 +88,7 @@ export async function getStaticPaths() {
   return paths;
 }
 
-const { slug, galleryTitle, imageName, variants, prevImage, nextImage, imageNumber, totalImages, fallback } = Astro.props;
+const { slug, galleryTitle, imageName, variants, prevImage, nextImage, imageNumber, totalImages, fallback, alt, caption } = Astro.props;
 ---
 
 <!DOCTYPE html>
@@ -136,6 +140,11 @@ const { slug, galleryTitle, imageName, variants, prevImage, nextImage, imageNumb
       text-align: center;
       font-size: 0.875rem;
       color: #999;
+    }
+
+    .caption {
+      font-size: 0.875rem;
+      color: rgba(255, 255, 255, 0.5);
     }
     
     .back-link {
@@ -274,7 +283,7 @@ const { slug, galleryTitle, imageName, variants, prevImage, nextImage, imageNumb
         
         <img
           src={fallback}
-          alt={imageName}
+          alt={alt || imageName}
         />
       </picture>
     </div>
@@ -295,7 +304,7 @@ const { slug, galleryTitle, imageName, variants, prevImage, nextImage, imageNumb
   </div>
   
   <footer>
-    <!-- <a href="/">kwon.photos</a> -->
+    {caption && <p class="caption">{caption}</p>}
   </footer>
   
 <script>
