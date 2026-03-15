@@ -46,6 +46,7 @@ function getGalleries() {
         location:  meta.location  || '',
         cover:     meta.cover     || '',
         blurb:     meta.blurb     || '',
+        createdAt: meta.createdAt || '',
       };
 
       return { slug, title: meta.title || slug, galleryMeta, images };
@@ -68,7 +69,7 @@ function saveField(slug, imageName, field, value) {
   fs.writeFileSync(metaPath, JSON.stringify(meta, null, 2) + '\n');
 }
 
-const GALLERY_FIELDS = ['title', 'subtitle', 'dateRange', 'location', 'cover', 'blurb'];
+const GALLERY_FIELDS = ['title', 'subtitle', 'dateRange', 'location', 'cover', 'blurb', 'createdAt'];
 
 function saveGalleryField(slug, field, value) {
   if (!GALLERY_FIELDS.includes(field)) throw new Error('Invalid field');
@@ -166,6 +167,7 @@ function renderHtml(galleries) {
           ${makeGalleryField('dateRange', 'Date range')}
           ${makeGalleryField('location',  'Location')}
           ${makeGalleryField('cover',     'Cover image', 'select')}
+          ${makeGalleryField('createdAt', 'Created (YYYY-MM-DD)')}
           ${makeGalleryField('blurb',     'Blurb', 'textarea')}
         </div>
       </div>`;

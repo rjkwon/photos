@@ -55,6 +55,11 @@ if (fs.existsSync(galleriesDir)) {
 
     return { slug, ...metadata, imageCount, coverImage };
   });
+
+  galleries.sort((a, b) => {
+    const d = (g) => g.createdAt ? new Date(g.createdAt) : new Date(0);
+    return d(b) - d(a);
+  });
 }
 ---
 

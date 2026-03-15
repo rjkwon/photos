@@ -1,5 +1,4 @@
 {
-  "title": "Finally an amateur photographer took some New York City street photos and posted them on the internet 🙄",
   "dateRange": "2023–2026",
   "location": "New York, New York",
   "images": {
@@ -13,5 +12,8 @@
     }
   },
   "blurb": "En serio, I realized a little while ago that I don't have many photos of daily observations from earlier in my life, so I'm trying to challenge myself to (1) notice more of the everyday around me and (2) remember to bring a camera with me when I go out for random walks or day outings, not just when traveling or seeing something \"new\", and (3) actually take some photos and share them. Here are a bunch of those snapshots from the last few years, roughly in geographic order from Queens to Manhattan to Brooklyn and east to west to south.",
-  "cover": "20260216_14"
+  "cover": "20260216_14",
+  "createdAt": "2026-03-15",
+  "subtitle": "Has anyone ever taken cool street photos in New York City and posted them on the internet? Well, you're welcome.",
+  "title": "NYC street photos"
 }
