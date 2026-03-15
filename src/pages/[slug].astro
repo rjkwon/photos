@@ -129,7 +129,11 @@ const { slug, metadata, imageData } = Astro.props;
 // Default layout (if no custom groups defined)
 let layoutGroups = metadata.groups;
 if (!layoutGroups) {
-  const imageNames = Object.keys(imageData).sort();
+  const imageNames = Object.keys(imageData).sort((a, b) => {
+    const seqA = parseInt(a.match(/_(\d+)$/)?.[1] ?? '0', 10);
+    const seqB = parseInt(b.match(/_(\d+)$/)?.[1] ?? '0', 10);
+    return seqA - seqB;
+  });
 
   layoutGroups = [{
     type: 'auto',
@@ -218,8 +222,14 @@ if (!layoutGroups) {
     }
 
     .group.auto {
-        grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-        grid-auto-flow: dense;
+        display: flex;
+        flex-wrap: wrap;
+    }
+
+    .group.auto .gallery-item {
+        height: 320px;
+        flex-grow: 1;
+        flex-basis: 320px;
     }
 
     .group.portrait-tall {
@@ -255,7 +265,11 @@ if (!layoutGroups) {
     /* Responsive adjustments */
     @media (max-width: 768px) {
 
-        .group.auto,
+        .group.auto .gallery-item {
+            height: 240px;
+            flex-basis: 100%;
+        }
+
         .group.side-by-side,
         .group.grid-2x2,
         .group.featured {

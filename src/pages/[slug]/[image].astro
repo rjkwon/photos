@@ -45,7 +45,11 @@ export async function getStaticPaths() {
       }
     });
     
-    const imageNames = Object.keys(imageGroups).sort();
+    const imageNames = Object.keys(imageGroups).sort((a, b) => {
+      const seqA = parseInt(a.match(/_(\d+)$/)?.[1] ?? '0', 10);
+      const seqB = parseInt(b.match(/_(\d+)$/)?.[1] ?? '0', 10);
+      return seqA - seqB;
+    });
     
     imageNames.forEach((imageName, index) => {
       const files = imageGroups[imageName];
