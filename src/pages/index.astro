@@ -103,7 +103,7 @@ if (fs.existsSync(galleriesDir)) {
         text-decoration: underline;
     }
 
-.galleries {
+    .grid {
         display: grid;
         grid-template-columns: repeat(3, 1fr);
         gap: 2rem;
@@ -131,8 +131,8 @@ if (fs.existsSync(galleriesDir)) {
 
     .title {
         margin-top: 0.75rem;
-        font-size: 0.8rem;
-        font-weight: bold;
+        font-size: 1rem;
+        line-height: 1.6;
         color: var(--text-secondary);
     }
 
@@ -141,9 +141,15 @@ if (fs.existsSync(galleriesDir)) {
         text-decoration: none;
     }
 
-    .subtitle, .photo-count {
+    .subtitle {
         font-size: 0.8rem;
         color: var(--text-secondary);
+        line-height: 1.6;
+    }
+
+    .photo-count {
+        font-style: italic;
+        font-size: 0.8rem;
         line-height: 1.6;
     }
 
@@ -153,11 +159,15 @@ if (fs.existsSync(galleriesDir)) {
             margin: 0;
         }
 
-        .galleries {
+        .grid {
             grid-template-columns: 1fr;
             gap: 0;
             padding: 0;
             margin: 0;
+        }
+
+        .gallery-card {
+            padding-bottom: 2rem;
         }
     }
     </style>
@@ -171,14 +181,13 @@ if (fs.existsSync(galleriesDir)) {
     </header>
 
     <main>
-        <div class="galleries">
+        <div class="grid">
             {galleries.map((g) => (
-            <div class="gallery">
+            <div class="gallery-card">
                 <a class="thumb" href={`/${g.slug}`}> {g.coverImage && <img src={g.coverImage} alt={g.title} />}
                 </a>
-                <div class="title"><a href={`/${g.slug}`}>{g.title}</a></div>
+                <div class="title"><a href={`/${g.slug}`}>{g.title}</a> ({g.imageCount})</div>
                 {g.subtitle && <p class="subtitle">{g.subtitle}</p>}
-                <p class="photo-count">{g.imageCount} {g.imageCount === 1 ? 'photo' : 'photos'}</p>
             </div>
             ))}
         </div>
