@@ -18,5 +18,8 @@ pnpm-debug.log*
 # macOS-specific files
 .DS_Store
 
+# raw source images (processed locally, not needed in version control)
+src/images/
+
 # jetbrains setting folder
 .idea/
