@@ -19,7 +19,11 @@ pnpm-debug.log*
 .DS_Store
 
 # raw source images (processed locally, not needed in version control)
-src/images/
+src/images/**/*.jpg
+src/images/**/*.jpeg
+src/images/**/*.png
+src/images/**/*.heic
+src/images/**/*.dng
 
 # jetbrains setting folder
 .idea/
