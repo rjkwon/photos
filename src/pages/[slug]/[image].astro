@@ -4,25 +4,24 @@ import path from 'path';
 import '../../styles/global.css';
 
 export async function getStaticPaths() {
-  const galleriesDir = path.resolve('src/images');
-  
+  const galleriesDir = path.resolve('public/photos');
+
   if (!fs.existsSync(galleriesDir)) {
     return [];
   }
-  
+
   const galleryFolders = fs.readdirSync(galleriesDir).filter((f) => {
     const fullPath = path.join(galleriesDir, f);
     return fs.statSync(fullPath).isDirectory();
   });
-  
+
   const paths = [];
-  
+
   for (const slug of galleryFolders) {
-    const galleryPath = path.join(galleriesDir, slug);
-    const publicGalleryPath = path.join('public/photos', slug);
-    
+    const publicGalleryPath = path.join(galleriesDir, slug);
+
     // Read metadata
-    const metaPath = path.join(galleryPath, 'meta.json');
+    const metaPath = path.resolve('src/galleries', slug, 'meta.json');
     let metadata = { title: slug.replace(/-/g, ' ') };
     if (fs.existsSync(metaPath)) {
       const metaContent = fs.readFileSync(metaPath, 'utf-8');

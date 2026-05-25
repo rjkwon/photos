@@ -6,11 +6,10 @@ import ThemeToggle from '../components/ThemeToggle.astro';
 import '../styles/global.css';
 
 export async function getStaticPaths() {
-  const galleriesDir = path.resolve('src/images');
+  const galleriesDir = path.resolve('public/photos');
 
-  // Ensure galleries directory exists
   if (!fs.existsSync(galleriesDir)) {
-    console.warn('⚠️ src/images directory not found');
+    console.warn('⚠️ public/photos directory not found');
     return [];
   }
 
@@ -22,11 +21,10 @@ export async function getStaticPaths() {
   console.log("📂 Galleries found:", galleryFolders);
 
   return galleryFolders.map((slug) => {
-    const galleryPath = path.join(galleriesDir, slug);
-    const publicGalleryPath = path.join('public/photos', slug);
+    const publicGalleryPath = path.join(galleriesDir, slug);
 
     // Read metadata
-    const metaPath = path.join(galleryPath, 'meta.json');
+    const metaPath = path.resolve('src/galleries', slug, 'meta.json');
     let metadata = {
       title: slug.replace(/-/g, ' '),
       blurb: '',
@@ -40,29 +38,11 @@ export async function getStaticPaths() {
       metadata = { ...metadata, ...JSON.parse(metaContent) };
     }
 
-    // Get source images from src/images to determine what should exist
-    const sourceFiles = fs.existsSync(galleryPath)
-      ? fs.readdirSync(galleryPath).filter((f) => /\.(jpg|jpeg|png|heic|dng)$/i.test(f))
-      : [];
-
-    // If no processed images yet, create placeholder imageData
     if (!fs.existsSync(publicGalleryPath)) {
-      console.warn(`⚠️ No processed images found for ${slug} - they will be generated during build`);
-      const imageData = {};
-      sourceFiles.forEach(file => {
-        const baseName = path.parse(file).name;
-        // Create placeholder - images will be processed during build
-        imageData[baseName] = {
-          baseName,
-          variants: { avif: {}, webp: {}, jpg: {} },
-          fallback: '',
-          alt: metadata.images?.[baseName]?.alt || '',
-          caption: metadata.images?.[baseName]?.caption || '',
-        };
-      });
+      console.warn(`⚠️ No processed images found for ${slug}`);
       return {
         params: { slug },
-        props: { slug, metadata, imageData }
+        props: { slug, metadata, imageData: {} }
       };
     }
 

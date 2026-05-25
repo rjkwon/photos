@@ -5,7 +5,7 @@ import ThemeScript from '../components/ThemeScript.astro';
 import ThemeToggle from '../components/ThemeToggle.astro';
 import '../styles/global.css';
 
-const galleriesDir = path.resolve('src/images');
+const galleriesDir = path.resolve('public/photos');
 let galleries = [];
 
 if (fs.existsSync(galleriesDir)) {
@@ -15,14 +15,14 @@ if (fs.existsSync(galleriesDir)) {
   });
 
   galleries = folders.map((slug) => {
-    const metaPath = path.join(galleriesDir, slug, 'meta.json');
+    const metaPath = path.resolve('src/galleries', slug, 'meta.json');
     let metadata = { title: slug.replace(/-/g, ' ') };
     if (fs.existsSync(metaPath)) {
       const meta = JSON.parse(fs.readFileSync(metaPath, 'utf-8'));
       metadata = { ...metadata, ...meta };
     }
 
-    const publicDir = path.join('public/photos', slug);
+    const publicDir = path.join(galleriesDir, slug);
     let coverImage = null;
     let imageCount = 0;
 
