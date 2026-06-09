@@ -15,7 +15,7 @@ if (fs.existsSync(galleriesDir)) {
   });
 
   galleries = folders.map((slug) => {
-    const metaPath = path.resolve('src/galleries', slug, 'meta.json');
+    const metaPath = path.resolve('src/metadata', slug, 'meta.json');
     let metadata = { title: slug.replace(/-/g, ' ') };
     if (fs.existsSync(metaPath)) {
       const meta = JSON.parse(fs.readFileSync(metaPath, 'utf-8'));

@@ -6,6 +6,7 @@ import { fileURLToPath } from 'url';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, '..');
 const IMAGES_DIR = path.join(ROOT, 'src/images');
+const GALLERIES_DIR = path.join(ROOT, 'src/metadata');
 const PUBLIC_DIR = path.join(ROOT, 'public');
 const PORT = 3001;
 
@@ -17,7 +18,7 @@ function getGalleries() {
     .sort()
     .map(slug => {
       const galleryPath = path.join(IMAGES_DIR, slug);
-      const metaPath = path.join(galleryPath, 'meta.json');
+      const metaPath = path.join(GALLERIES_DIR, slug, 'meta.json');
 
       let meta = { title: slug.replace(/-/g, ' ') };
       if (fs.existsSync(metaPath)) {
@@ -56,7 +57,7 @@ function getGalleries() {
 function saveField(slug, imageName, field, value) {
   if (!['alt', 'caption'].includes(field)) throw new Error('Invalid field');
 
-  const metaPath = path.join(IMAGES_DIR, slug, 'meta.json');
+  const metaPath = path.join(GALLERIES_DIR, slug, 'meta.json');
   let meta = {};
   if (fs.existsSync(metaPath)) {
     meta = JSON.parse(fs.readFileSync(metaPath, 'utf-8'));
@@ -66,6 +67,7 @@ function saveField(slug, imageName, field, value) {
   if (!meta.images[imageName]) meta.images[imageName] = {};
   meta.images[imageName][field] = value;
 
+  fs.mkdirSync(path.dirname(metaPath), { recursive: true });
   fs.writeFileSync(metaPath, JSON.stringify(meta, null, 2) + '\n');
 }
 
@@ -74,7 +76,7 @@ const GALLERY_FIELDS = ['title', 'subtitle', 'dateRange', 'location', 'cover', '
 function saveGalleryField(slug, field, value) {
   if (!GALLERY_FIELDS.includes(field)) throw new Error('Invalid field');
 
-  const metaPath = path.join(IMAGES_DIR, slug, 'meta.json');
+  const metaPath = path.join(GALLERIES_DIR, slug, 'meta.json');
   let meta = {};
   if (fs.existsSync(metaPath)) {
     meta = JSON.parse(fs.readFileSync(metaPath, 'utf-8'));
@@ -86,6 +88,7 @@ function saveGalleryField(slug, field, value) {
     meta[field] = value;
   }
 
+  fs.mkdirSync(path.dirname(metaPath), { recursive: true });
   fs.writeFileSync(metaPath, JSON.stringify(meta, null, 2) + '\n');
 }
 
