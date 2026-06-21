@@ -9,14 +9,13 @@ This is my photo site, built with Astro. It's a static site and you can see it l
 root/
 ├── dist/                     👉 Generated static site (not tracked in git)
 ├── src/
-│   ├── images/               👉 Source images
+│   ├── images/               👉 Source images (not tracked in git)
 │   │   └── gallery-name/
-│   │       ├── meta.json     👉 Gallery metadata
-│   │       └── *.jpg         👉 Original photos
+│   ├── metadata/              👉 
 │   ├── pages/
 │   │   ├── [slug].astro      👉 Gallery page
 │   │   ├── [slug]/
-│   │   │   └── [image].astro 👉 Individual image page
+│   │   │   └── [image].astro 👉 Individual image page overlay
 │   │   └── index.astro       👉 Homepage
 │   └── styles/
 │       └── global.css        👉 Global styles (fonts, resets)
